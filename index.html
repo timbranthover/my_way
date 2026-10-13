@@ -28,6 +28,7 @@
   --warn:#a3620a; --warn-bg:#fbefdc;
   --pz-bg:#f6f8fb; --pz-bg-top:#fbfcfe;
   --pz-edge:#3a4150; --pz-shine:#b9c6dc;
+  --track:#e3e6eb;
   --up-bg:#e7eff9; --down-bg:#f6ebe8; --hl:#e3ebf7;
   --font:"Frutiger","Frutiger LT Std","Frutiger 55 Roman","Hind","Segoe UI",Arial,sans-serif;
 }
@@ -89,12 +90,20 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .qtitle{font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.4px}
 .qstate{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .qtext{font-size:14px;margin:3px 0 10px;color:var(--fg)}
-.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--rule);border-radius:2px;overflow:hidden}
-.scale button{border:0;border-left:1px solid var(--line);background:var(--bg);padding:4px 0 5px;font-size:18px;line-height:1;cursor:pointer;font-variant-numeric:tabular-nums}
-.scale button:first-child{border-left:0}
-.scale button.mid{font-weight:600;font-size:11.5px;letter-spacing:.5px;padding-top:7px}
-.scale button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.scale button:disabled{color:#c3c6cc;cursor:not-allowed;background:#f6f7f8}
+/* 5-notch slider: same footprint as the old ladder (about 30px tall) */
+.sl{position:relative;height:30px;margin:0 11px;cursor:pointer;touch-action:none;outline:none}
+.sl:focus-visible .thumb{outline:2px solid #2a6fd6;outline-offset:2px}
+.sl .tr{position:absolute;left:0;right:0;top:13px;height:4px;border-radius:2px;background:var(--track)}
+.sl .hatch{position:absolute;width:50%;top:12px;height:6px;border-radius:2px;background:repeating-linear-gradient(135deg,#d9dce2 0 2px,#f4f5f7 2px 5px)}
+.sl .sfill{position:absolute;top:13px;height:4px;border-radius:2px}
+.sl .tick{position:absolute;top:9px;width:2px;height:12px;margin-left:-1px;background:#c4c8cf;border-radius:1px}
+.sl .tick.mid{top:7px;height:16px;background:var(--rule)}
+.sl .thumb{position:absolute;top:4px;width:22px;height:22px;margin-left:-11px;border-radius:50%;background:var(--bg);border:2px solid var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:width .12s,height .12s,margin .12s,top .12s,box-shadow .12s,border-color .12s}
+.sl .thumb.cio{border-color:var(--faint)}
+.sl.snap .thumb,.sl.snap .sfill{transition:left .18s cubic-bezier(.2,.8,.3,1),width .18s cubic-bezier(.2,.8,.3,1),box-shadow .12s,border-color .12s}
+.sl.drag .thumb{width:26px;height:26px;margin-left:-13px;top:2px;border-color:var(--up);box-shadow:0 0 0 7px rgba(31,95,168,.14),0 2px 6px rgba(0,0,0,.2)}
+.sl .tip{position:absolute;bottom:31px;transform:translateX(-50%);background:var(--fg);color:var(--bg);font-size:12px;font-weight:600;padding:4px 8px 2px;border-radius:2px;white-space:nowrap;pointer-events:none;z-index:2}
+.sl .tip::after{content:"";position:absolute;left:50%;bottom:-4px;margin-left:-4px;border:4px solid transparent;border-bottom:0;border-top-color:var(--fg)}
 .poles{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px;gap:8px}
 .poles span:last-child{text-align:right}
 .pair{font-size:12px;color:var(--faint);margin-top:6px}
@@ -387,18 +396,19 @@ function railPZ(){
       <span class="basenm">${esc(M(S.base).n)}</span>
     </div>
     <div class="pz-h">Client preferences</div>
-    <div class="pz-sub">The middle answer keeps the CIO weights. Each answer shifts one pair of similar asset classes.</div>
+    <div class="pz-sub">The center keeps the CIO weights. Each slider shifts one pair of similar asset classes.</div>
     ${QS.map(q=>{
       const n=S.ans[q.k];
       return `<div class="q">
-        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate">${q.lv[n+2]}</span></div>
+        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate" data-qs="${q.k}">${q.lv[n+2]}</span></div>
         <div class="qtext">${q.q}</div>
-        <div class="scale" role="group" aria-label="${q.t}">
-          ${[-2,-1,0,1,2].map(v=>{
-            const ok = v===0 || avail(q, base, v);
-            const lab = v===0?"CIO":(v<0?"‹".repeat(-v):"›".repeat(v));
-            return `<button class="${v===0?"mid":""}" data-q="${q.k}" data-v="${v}" aria-pressed="${n===v}" ${ok?"":"disabled"} aria-label="${q.lv[v+2]}">${lab}</button>`;
-          }).join("")}
+        <div class="sl" data-sl="${q.k}" role="slider" tabindex="0" aria-label="${q.t}" aria-valuemin="-2" aria-valuemax="2" aria-valuenow="${n}" aria-valuetext="${q.lv[n+2]}">
+          <div class="tr"></div>
+          ${avail(q,base,-1)?"":`<div class="hatch" style="left:0"></div>`}${avail(q,base,1)?"":`<div class="hatch" style="left:50%"></div>`}
+          <div class="sfill"></div>
+          ${[-2,-1,0,1,2].map(v=>`<div class="tick${v===0?" mid":""}" style="left:${(v+2)*25}%"></div>`).join("")}
+          <div class="thumb"></div>
+          <div class="tip" hidden></div>
         </div>
         <div class="poles"><span>${q.L}</span><span>${q.Rt}</span></div>
         <div class="pair">${AC[IDX[q.from]].n} ↔ ${AC[IDX[q.to]].n}</div>
@@ -440,6 +450,11 @@ function render(){
   $("#backBtn").hidden = !pz;
   $("#stageTitle").textContent = pz ? "Personalize: CIO Model" : "Allocation Method: CIO Models";
   $("#railBody").innerHTML = pz ? railPZ() : railCIO();
+  if(pz) document.querySelectorAll("[data-sl]").forEach(el=>paintSlider(el, S.ans[el.dataset.sl]));
+  renderStage();
+}
+function renderStage(){
+  const pz = S.method==="pz";
   const tiles = $("#tiles");
   if(!pz){
     const ms = S.picked.map(M);
@@ -473,14 +488,63 @@ document.addEventListener("click", e=>{
     if(i>=0) S.picked.splice(i,1); else if(S.picked.length<3) S.picked.push(id); render(); return; }
   if(t.dataset.unpick){ S.picked=S.picked.filter(x=>x!==t.dataset.unpick); render(); return; }
   if(t.dataset.pz){ if(S.base!==t.dataset.pz){ S.base=t.dataset.pz; clampAnswers(); } S.method="pz"; $("#sa-pz").checked=true; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
-  if(t.dataset.q){ S.ans[t.dataset.q]=+t.dataset.v; render(); return; }
   if(t.id==="resetAns"){ for(const k in S.ans) S.ans[k]=0; render(); return; }
   if(t.id==="apply"){ const v=document.querySelector('input[name="setalloc"]:checked').value;
     toast(v==="pz"?"Personalized allocation set for this proposal":v==="cio"?"CIO model allocation set for this proposal":"Proposed allocation set for this proposal"); return; }
   if(t.id==="cancel"){ toast("No changes applied"); return; }
 });
 document.addEventListener("keydown", e=>{ const r=e.target.closest("[data-pick]"); if(r&&(e.key===" "||e.key==="Enter")){e.preventDefault(); r.click();} });
-document.addEventListener("change", e=>{ if(e.target.id==="baseSel"){ S.base=e.target.value; clampAnswers(); render(); } });
+// ---------- Sliders: thumb moves freely while dragging, tiles follow the nearest notch live, release snaps to it
+const QK = k => QS.find(q=>q.k===k);
+function range(q){ const b=M(S.base).w; return [avail(q,b,-1)?-2:0, avail(q,b,1)?2:0]; }
+function paintSlider(el, pos, dragging){
+  const q=QK(el.dataset.sl), n=Math.round(pos), x=(pos+2)*25;
+  const fill=el.querySelector(".sfill"), thumb=el.querySelector(".thumb");
+  thumb.style.left = x+"%";
+  thumb.classList.toggle("cio", n===0 && !dragging);
+  const lo=Math.min(50,x), hi=Math.max(50,x);
+  fill.style.left = lo+"%"; fill.style.width = (hi-lo)+"%";
+  fill.style.background = AC[IDX[pos>0?q.to:q.from]].c;
+  el.setAttribute("aria-valuenow", n); el.setAttribute("aria-valuetext", q.lv[n+2]);
+  const st=document.querySelector(`[data-qs="${q.k}"]`); if(st) st.textContent=q.lv[n+2];
+  const tip=el.querySelector(".tip");
+  if(dragging){
+    const r=personalize(M(S.base).w, {...S.ans, [q.k]:n}).moves.find(m=>m.q.k===q.k);
+    tip.textContent = r ? `${short(q.to)} ${sgn(r.amt)} · ${short(q.from)} ${sgn(-r.amt)}` : "CIO view";
+    tip.style.left = x+"%"; tip.hidden=false;
+  } else tip.hidden=true;
+}
+const SHORT = {corp:"Corp IG", muni:"Munis", gov:"Gov", tips:"TIPS", sec:"Securitized", hf:"Hedge Funds", lc:"Large Cap", dm:"Dev. Mkts"};
+const short = k => SHORT[k]||AC[IDX[k]].n;
+function setAnswer(k, n){ if(S.ans[k]!==n){ S.ans[k]=n; renderStage(); } }
+let drag=null;
+document.addEventListener("pointerdown", e=>{
+  const el=e.target.closest("[data-sl]"); if(!el) return;
+  e.preventDefault(); el.focus();
+  const q=QK(el.dataset.sl), [lo,hi]=range(q), rect=el.getBoundingClientRect();
+  drag={el,q,lo,hi,rect}; el.classList.remove("snap"); el.classList.add("drag"); el.setPointerCapture(e.pointerId);
+  moveDrag(e);
+});
+function moveDrag(e){
+  if(!drag) return;
+  const {el,q,lo,hi,rect}=drag;
+  const pos=Math.max(lo,Math.min(hi,((e.clientX-rect.left)/rect.width)*4-2));
+  drag.pos=pos; paintSlider(el,pos,true); setAnswer(q.k, Math.round(pos));
+}
+document.addEventListener("pointermove", moveDrag);
+function endDrag(){
+  if(!drag) return;
+  const {el,q}=drag, n=Math.round(drag.pos??S.ans[q.k]); drag=null;
+  el.classList.remove("drag"); el.classList.add("snap"); paintSlider(el,n,false); setAnswer(q.k,n);
+}
+document.addEventListener("pointerup", endDrag); document.addEventListener("pointercancel", endDrag);
+document.addEventListener("keydown", e=>{
+  const el=e.target.closest("[data-sl]"); if(!el) return;
+  const q=QK(el.dataset.sl), [lo,hi]=range(q); let n=S.ans[q.k];
+  if(e.key==="ArrowRight"||e.key==="ArrowUp") n++; else if(e.key==="ArrowLeft"||e.key==="ArrowDown") n--;
+  else if(e.key==="Home") n=lo; else if(e.key==="End") n=hi; else return;
+  e.preventDefault(); n=Math.max(lo,Math.min(hi,n)); el.classList.add("snap"); paintSlider(el,n,false); setAnswer(q.k,n);
+});
 function clampAnswers(){ const b=M(S.base).w; for(const q of QS){ const n=S.ans[q.k]; if(n && !avail(q,b,n)) S.ans[q.k]=0; } }
 let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,2200); }
 
