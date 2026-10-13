@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>MyWay Allocation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: clone of the proposal tool's Allocation Models modal — fixed left control rail, right compare stage of three tiles, footer actions. Single light look, matching the production screen. */
+:root{
+  color-scheme: light;
+  --bg:#ffffff;
+  --fg:#1d1f22;
+  --muted:#5b5f66;
+  --faint:#8a8f97;
+  --line:#d5d8dd;
+  --rule:#33363b;
+  --group:#e2e4e8;
+  --rowsel:#c9cdd5;
+  --tile:#ffffff;
+  --tile-line:#e1e3e7;
+  --chip:#eef0f3;
+  --accent:#e60000;          /* UBS red, used only for the NEW marker */
+  --select:#1d1f22;
+  --up:#1f5fa8;
+  --down:#9c4a3c;
+  --ok:#2c7a46; --ok-bg:#e5f2ea;
+  --warn:#a3620a; --warn-bg:#fbefdc;
+  --font:"Frutiger","Frutiger LT Std","Frutiger 55 Roman","Hind","Segoe UI",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.35;margin:0}
+button,select,input{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid #2a6fd6;outline-offset:2px}
+
+.modal{max-width:1500px;margin:0 auto;padding-inline:clamp(16px,2vw,28px);padding-block:18px 0;display:flex;flex-direction:column;min-height:100%}
+.mhead{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid var(--rule)}
+.mhead h1{font-size:26px;font-weight:600;margin:0;letter-spacing:.1px}
+.xbtn{background:none;border:0;cursor:pointer;padding:6px;line-height:0;color:var(--muted)}
+.xbtn svg{width:20px;height:20px}
+.subrule{height:1px;background:var(--line);margin-top:22px}
+
+.body{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:28px;padding-top:26px;flex:1}
+@media (max-width:860px){.body{grid-template-columns:minmax(0,1fr)}}
+
+/* left rail */
+.rail{display:flex;flex-direction:column;min-width:0}
+.lbl{color:var(--muted);font-size:14px;margin-bottom:3px}
+.val{font-size:19px;font-weight:600}
+.field{display:flex;flex-direction:column;margin-bottom:22px}
+.selwrap{position:relative;width:min(100%,260px)}
+.selwrap select{appearance:none;-webkit-appearance:none;width:100%;border:1px solid var(--rule);border-radius:2px;background:var(--bg);padding:9px 38px 9px 14px;font-size:1.07em;cursor:pointer;text-overflow:ellipsis}
+.selwrap{font-size:15px}
+.selwrap svg{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;pointer-events:none}
+.radios{display:flex;gap:26px;flex-wrap:wrap;margin-top:4px}
+.radio{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:15px}
+.radio input{appearance:none;-webkit-appearance:none;width:20px;height:20px;border:1.5px solid var(--muted);border-radius:50%;margin:0;display:grid;place-items:center;cursor:pointer}
+.radio input:checked{border-color:var(--fg)}
+.radio input:checked::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--fg)}
+.radio .new{font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.6px;margin-left:-3px}
+.thick{height:3px;background:var(--rule);margin:4px 0 22px}
+
+.cmpnote{font-size:15px;margin-bottom:8px}
+.group{margin-bottom:14px}
+.ghead{display:flex;justify-content:space-between;align-items:center;width:100%;background:var(--group);border:0;border-bottom:2px solid var(--rule);padding:10px 12px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;font-size:14px;cursor:pointer;text-align:left}
+.ghead svg{width:16px;height:16px;transition:transform .2s}
+.group.closed .ghead svg{transform:rotate(180deg)}
+.group.closed .rows{display:none}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--line);font-size:14px;cursor:pointer}
+.row.sel{background:var(--rowsel)}
+.row.dis{color:var(--faint);cursor:not-allowed}
+.cbox{width:20px;height:20px;border:1.5px solid #b9bdc4;border-radius:2px;flex:none;display:grid;place-items:center;background:var(--bg)}
+.row.sel .cbox{border-color:var(--fg)}
+.cbox svg{width:14px;height:14px;display:none}
+.row.sel .cbox svg{display:block}
+
+/* personalized controls */
+.pz-h{font-size:15px;font-weight:600;margin-bottom:4px}
+.pz-sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+.q{padding:12px 0 14px;border-top:1px solid var(--line)}
+.q:last-of-type{border-bottom:1px solid var(--line)}
+.qtop{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.qtitle{font-weight:600;font-size:14px;text-transform:uppercase;letter-spacing:.4px}
+.qstate{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.qtext{font-size:14px;margin:3px 0 10px;color:var(--fg)}
+.scale{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.scale button{border:0;border-left:1px solid var(--line);background:var(--bg);padding:4px 0 5px;font-size:18px;line-height:1;cursor:pointer;font-variant-numeric:tabular-nums}
+.scale button:first-child{border-left:0}
+.scale button.mid{font-weight:600;font-size:11.5px;letter-spacing:.5px;padding-top:7px}
+.scale button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.scale button:disabled{color:#c3c6cc;cursor:not-allowed;background:#f6f7f8}
+.poles{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:5px;gap:8px}
+.poles span:last-child{text-align:right}
+.pair{font-size:12px;color:var(--faint);margin-top:6px}
+.reset{align-self:flex-start;margin-top:12px;background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:13px}
+
+/* stage */
+.stage{min-width:0;display:flex;flex-direction:column}
+.stage h2{font-size:24px;font-weight:600;margin:0 0 22px 14px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:1180px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.tiles{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--tile);border:1px solid var(--tile-line);box-shadow:0 1px 3px rgba(30,35,45,.06);padding:16px 18px 18px;position:relative;min-width:0;display:flex;flex-direction:column}
+.tile.pz{border-color:var(--rule);box-shadow:0 2px 10px rgba(30,35,45,.10)}
+.tile .tx{position:absolute;right:10px;top:10px}
+.tkind{text-align:center;font-weight:600;letter-spacing:.4px;text-transform:uppercase;font-size:14.5px;padding-inline:22px}
+.tname{text-align:center;font-weight:600;font-size:14.5px;padding-inline:22px;text-wrap:balance;min-height:2.7em}
+.tbadge{display:flex;justify-content:center;margin-top:4px}
+.tbadge span{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--accent);border:1px solid var(--accent);padding:1px 6px 0;border-radius:2px}
+.donut{display:flex;justify-content:center;padding:16px 0 18px}
+.donut svg{width:min(100%,220px);height:auto}
+.legend{display:flex;flex-direction:column;gap:9px}
+.li{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:10px;align-items:start;font-size:15px}
+.li.withd{grid-template-columns:16px minmax(0,1fr) auto 52px}
+.sw{width:16px;height:16px;margin-top:2px}
+.pct{font-variant-numeric:tabular-nums;text-align:right}
+.li.zero{color:var(--faint)}
+.d{font-size:12px;font-variant-numeric:tabular-nums;text-align:right;padding-top:2px;font-weight:600}
+.d.up{color:var(--up)} .d.dn{color:var(--down)} .d.flat{color:transparent}
+.tlink{margin-top:16px;align-self:center;background:none;border:1px solid var(--rule);padding:6px 12px 5px;font-size:13px;cursor:pointer;border-radius:2px}
+.tlink:hover{background:var(--chip)}
+.empty{border:1px dashed var(--line);display:grid;place-items:center;color:var(--faint);min-height:280px;font-size:14px;text-align:center;padding:20px}
+
+/* change tile */
+.ch-h{font-weight:600;letter-spacing:.4px;text-transform:uppercase;font-size:14.5px;text-align:center}
+.ch-sub{text-align:center;font-size:13px;color:var(--muted);margin:2px 0 16px}
+.sect{font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:4px 0 8px}
+.bars{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.bar{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 48px;gap:8px;align-items:center;font-size:13.5px}
+.track{position:relative;height:12px;background:repeating-linear-gradient(90deg,transparent 0 calc(25% - 1px),#eceef1 calc(25% - 1px) 25%)}
+.track::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--rule)}
+.fill{position:absolute;top:1px;bottom:1px;transition:left .3s,width .3s}
+.bv{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.nochange{font-size:13px;color:var(--muted);padding:6px 0 16px}
+.risk{display:grid;grid-template-columns:1fr auto auto auto;gap:4px 8px;font-size:13.5px;font-variant-numeric:tabular-nums;margin-bottom:10px;align-items:baseline}
+.risk .rh{font-size:11px;color:var(--faint);letter-spacing:.4px;text-transform:uppercase}
+.risk .arr{color:var(--faint)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:4px 9px 3px;border-radius:2px;margin-bottom:18px}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.why{display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.why div{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:8px}
+.why b{font-weight:600}
+.why span{color:var(--muted)}
+.fine{font-size:11.5px;color:var(--faint);margin-top:auto;padding-top:16px;line-height:1.4}
+
+.mfoot{display:flex;justify-content:flex-end;gap:10px;padding-block:14px 18px;margin-top:26px;border-top:1px solid var(--line)}
+.btn{border:0;border-radius:2px;padding:10px 18px 8px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;font-size:14px;cursor:pointer;background:#e6e8eb}
+.btn.primary{background:var(--fg);color:var(--bg)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px 8px;font-size:14px;border-radius:2px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+@media (prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+
+<div class="modal">
+  <div class="mhead">
+    <h1>Allocation Models</h1>
+    <button class="xbtn" aria-label="Close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
+  </div>
+  <div class="subrule"></div>
+
+  <div class="body">
+    <aside class="rail">
+      <div class="field">
+        <span class="lbl">Risk Tolerance</span>
+        <span class="val">Conservative</span>
+      </div>
+      <div class="field">
+        <label class="lbl" for="method">Allocation Method</label>
+        <div class="selwrap">
+          <select id="method">
+            <option value="cio">CIO Models</option>
+            <option value="pz">Personalized</option>
+          </select>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6l5 5 5-5"/></svg>
+        </div>
+      </div>
+      <div class="field">
+        <span class="lbl">Set Allocation</span>
+        <div class="radios" role="radiogroup" aria-label="Set Allocation">
+          <label class="radio"><input type="radio" name="setalloc" id="sa-cio" value="cio" checked>CIO MODEL</label>
+          <label class="radio"><input type="radio" name="setalloc" id="sa-prop" value="prop">Proposed</label>
+          <label class="radio" id="sa-pz-wrap" hidden><input type="radio" name="setalloc" id="sa-pz" value="pz">Personalized</label>
+        </div>
+      </div>
+      <div class="thick"></div>
+      <div id="railBody"></div>
+    </aside>
+
+    <section class="stage">
+      <h2 id="stageTitle">Allocation Method: CIO Models</h2>
+      <div class="tiles" id="tiles"></div>
+    </section>
+  </div>
+
+  <div class="mfoot">
+    <button class="btn" id="cancel">Cancel</button>
+    <button class="btn primary" id="apply">Apply</button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---------- Asset classes (order = legend order; donut draws counter-clockwise from 3 o'clock, as in the production screen)
+const AC = [
+  {k:"us",   n:"US",                                   c:"#6a8a2e", v:0.5},
+  {k:"gov",  n:"Government",                           c:"#bdb1c2", v:5.0},
+  {k:"muni", n:"Municipals",                           c:"#9a7474", v:4.5},
+  {k:"corp", n:"Corporate Investment Grade Credit",    c:"#a85a49", v:6.5},
+  {k:"tips", n:"Treasury Inflation-Protected Securities", c:"#a28b97", v:5.5},
+  {k:"sec",  n:"Securitized",                          c:"#b9a0a0", v:5.0},
+  {k:"lc",   n:"Large Cap",                            c:"#5bb6ec", v:16},
+  {k:"mc",   n:"Mid Cap",                              c:"#0b63c6", v:18},
+  {k:"sc",   n:"Small Cap",                            c:"#6aa7e2", v:21},
+  {k:"dm",   n:"Developed Markets",                    c:"#819ee3", v:17},
+  {k:"hf",   n:"Hedge Funds",                          c:"#3f3422", v:6.5},
+];
+const IDX = Object.fromEntries(AC.map((a,i)=>[a.k,i]));
+// Illustrative correlation matrix (positive definite, min eigenvalue 0.068). Stand-in for CIO capital market assumptions.
+const R = [[1,0,0,0,0,0,0,0,0,0,0],[0,1,.7,.7,.75,.8,-.1,-.1,-.1,-.1,0],[0,.7,1,.6,.55,.6,.1,.1,.1,.1,.2],[0,.7,.6,1,.6,.7,.3,.3,.3,.3,.4],[0,.75,.55,.6,1,.6,.1,.1,.1,.1,.2],[0,.8,.6,.7,.6,1,.1,.1,.1,.1,.3],[0,-.1,.1,.3,.1,.1,1,.9,.85,.85,.7],[0,-.1,.1,.3,.1,.1,.9,1,.92,.8,.7],[0,-.1,.1,.3,.1,.1,.85,.92,1,.75,.7],[0,-.1,.1,.3,.1,.1,.85,.8,.75,1,.7],[0,0,.2,.4,.2,.3,.7,.7,.7,.7,1]];
+const COV = R.map((r,i)=>r.map((x,j)=>x*AC[i].v*AC[j].v));
+
+// ---------- CIO models (Conservative). First three are as shown on the production screen; the rest are illustrative.
+const W = o => AC.map(a=>o[a.k]||0);
+const MODELS = [
+ {id:"m1", g:"saa", n:"Conservative no Non-Trad., with Taxable & Muni FI", w:W({us:2,gov:6,muni:58,corp:12,tips:2,sec:5,lc:9,mc:2,sc:1,dm:3})},
+ {id:"m2", g:"saa", n:"Cons. with Non-Traditional, Taxable & Muni FI",     w:W({us:2,gov:6.5,muni:62,tips:1.5,sec:5,lc:7,mc:2,sc:1,dm:3,hf:10})},
+ {id:"m3", g:"saa", n:"100% FI allocation with Taxable and Munis",          w:W({us:2,gov:10,muni:50,corp:23,tips:5,sec:10})},
+ {id:"m4", g:"saa", n:"Conservative no Non-Traditional, with Taxable FI",   w:W({us:2,gov:22,corp:44,tips:4,sec:13,lc:9,mc:2,sc:1,dm:3})},
+ {id:"m5", g:"saa", n:"100% FI allocation with Taxable",                    w:W({us:2,gov:25,corp:48,tips:7,sec:18})},
+ {id:"m6", g:"saa", n:"Conservative with Non-Traditional, Taxable FI",      w:W({us:2,gov:19,corp:38,tips:3,sec:15,lc:7,mc:2,sc:1,dm:3,hf:10})},
+ {id:"u1", g:"uhnw",n:"Cons. with Non-Traditional, Muni FI",                w:W({us:2,gov:3,muni:64,tips:1,sec:3,lc:7,mc:2,sc:1,dm:3,hf:14})},
+ {id:"i1", g:"inst",n:"Conservative with Non-Traditional, Taxable FI",      w:W({us:2,gov:20,corp:37,tips:3,sec:15,lc:7,mc:2,sc:1,dm:3,hf:10})},
+];
+const GROUPS = [{k:"saa",n:"Strategic Asset Allocation",kind:"Strategic Asset Allocation"},{k:"uhnw",n:"UHNW",kind:"UHNW"},{k:"inst",n:"Institutional",kind:"Institutional"}];
+const M = id => MODELS.find(m=>m.id===id);
+
+// ---------- Preference questions. Each moves weight between ONE like-for-like pair; no two questions share an asset class.
+const STEP = 0.15;           // share of the source sleeve moved per notch (CIO-set parameter)
+const GRID = 0.5;            // CIO publishes weights on a 0.5% grid
+const TE_LIMIT = 1.0, VOL_LIMIT = 0.5;
+const QS = [
+ {k:"tax", t:"Taxes",     q:"Higher yield before tax, or a lower tax bill?", from:"corp", to:"muni", L:"Higher pre-tax yield", Rt:"Lower tax bill",
+  lv:["Strongly prefers taxable","Leans taxable","CIO view","Leans tax-exempt","Strongly prefers tax-exempt"]},
+ {k:"inf", t:"Inflation", q:"How much protection against rising prices?",    from:"gov",  to:"tips", L:"Nominal Treasuries", Rt:"Inflation-protected",
+  lv:["Prefers nominal bonds","Leans nominal","CIO view","Leans inflation-protected","Strong inflation concern"]},
+ {k:"liq", t:"Liquidity", q:"How much can sit in investments that are slower to sell?", from:"sec", to:"hf", L:"Keep it liquid", Rt:"Comfortable with lock-ups",
+  lv:["Needs high liquidity","Leans liquid","CIO view","Leans alternatives","Comfortable with lock-ups"]},
+ {k:"geo", t:"Geography", q:"Where should the stock portion lean?",           from:"lc",   to:"dm",   L:"Closer to home (US)", Rt:"More global",
+  lv:["Strong US preference","Leans US","CIO view","Leans global","Strong global preference"]},
+];
+
+// ---------- Engine: base weights + answers -> personalized weights (sum preserved exactly)
+const snap = x => Math.round(x/GRID)*GRID;
+function personalize(base, ans){
+  const w = base.slice(); const moves = [];
+  for(const q of QS){
+    const n = ans[q.k]||0; if(!n) continue;
+    const a = IDX[q.from], b = IDX[q.to];
+    // positive notches move from->to, sized on the source sleeve; negative move to->from
+    let amt = n>0 ? snap(base[a]*STEP*n) : -snap(base[b]*STEP*(-n));
+    w[a] -= amt; w[b] += amt;
+    if(amt) moves.push({q, n, amt});
+  }
+  return {w, moves};
+}
+function quad(x){let s=0;for(let i=0;i<x.length;i++)for(let j=0;j<x.length;j++)s+=x[i]*COV[i][j]*x[j];return s}
+const vol = w => Math.sqrt(quad(w.map(x=>x/100)));
+const te  = (a,b) => Math.sqrt(quad(a.map((x,i)=>(x-b[i])/100)));
+const avail = (q, base, n) => n>0 ? base[IDX[q.from]]>0 : base[IDX[q.to]]>0;
+
+// ---------- State
+const S = { method:"cio", picked:["m1","m2","m6"], open:{saa:true,uhnw:true,inst:true}, base:"m6", ans:{tax:0,inf:0,liq:0,geo:0} };
+const prev = {}; // last drawn weights per donut, for tweening
+
+// ---------- Helpers
+const $ = s => document.querySelector(s);
+const fmt = x => (Math.round(x*10)/10).toString().replace(/\.0$/,"")+"%";
+const sgn = x => (x>0?"+":x<0?"−":"")+(Math.round(Math.abs(x)*10)/10).toString().replace(/\.0$/,"");
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
+const X = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg>';
+const CHEV = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5-5 5 5"/></svg>';
+const TICK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+
+// ---------- Donut (SVG, counter-clockwise from 3 o'clock, tweened)
+function arcPath(cx,cy,r0,r1,a0,a1){
+  // angles in radians, measured counter-clockwise from east; SVG y is down so negate
+  const large = (a1-a0)>Math.PI?1:0;
+  const p=(r,a)=>[cx+r*Math.cos(a), cy-r*Math.sin(a)];
+  const [x0,y0]=p(r1,a0),[x1,y1]=p(r1,a1),[x2,y2]=p(r0,a1),[x3,y3]=p(r0,a0);
+  return `M${x0},${y0}A${r1},${r1} 0 ${large} 0 ${x1},${y1}L${x2},${y2}A${r0},${r0} 0 ${large} 1 ${x3},${y3}Z`;
+}
+function donutSVG(w){
+  let a=0, out=""; const tot=w.reduce((s,x)=>s+x,0)||1;
+  w.forEach((x,i)=>{ if(x<=0.0001) return; const da=x/tot*2*Math.PI;
+    const a1 = Math.min(a+da, a+2*Math.PI-1e-4);
+    out+=`<path d="${arcPath(110,110,52,108,a,a1)}" fill="${AC[i].c}"/>`; a+=da; });
+  return `<svg viewBox="0 0 220 220" role="img" aria-label="Allocation donut">${out}</svg>`;
+}
+function drawDonut(el, key, w){
+  const from = prev[key] || w; prev[key] = w.slice();
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduce || from.every((x,i)=>x===w[i])){ el.innerHTML = donutSVG(w); return; }
+  const t0 = performance.now(), D=320;
+  const step = t => { const k=Math.min(1,(t-t0)/D), e=1-Math.pow(1-k,3);
+    el.innerHTML = donutSVG(from.map((x,i)=>x+(w[i]-x)*e)); if(k<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+
+// ---------- Tiles
+function legend(w, base){
+  return `<div class="legend">${AC.map((a,i)=>{
+    const show = w[i]>0 || (base && base[i]>0); if(!show) return "";
+    const d = base ? w[i]-base[i] : 0;
+    return `<div class="li${base?" withd":""}${w[i]===0?" zero":""}"><span class="sw" style="background:${a.c}"></span><span>${a.n}</span><span class="pct">${fmt(w[i])}</span>${base?`<span class="d ${d>0?"up":d<0?"dn":"flat"}">${d?sgn(d):"·"}</span>`:""}</div>`;
+  }).join("")}</div>`;
+}
+function modelTile(m, opts={}){
+  const kind = GROUPS.find(g=>g.k===m.g).kind;
+  return `<div class="tile">
+    ${opts.close?`<button class="xbtn tx" data-unpick="${m.id}" aria-label="Remove ${esc(m.n)}">${X}</button>`:""}
+    <div class="tkind">${kind}</div><div class="tname">${esc(m.n)}</div>
+    <div class="donut" data-donut="cio-${m.id}"></div>
+    ${legend(m.w)}
+    ${opts.personalize?`<button class="tlink" data-pz="${m.id}">Personalize from this model</button>`:""}
+  </div>`;
+}
+
+// ---------- Rail
+function railCIO(){
+  return `<div class="cmpnote">Select a maximum of 3 models to compare</div>` + GROUPS.map(g=>`
+    <div class="group${S.open[g.k]?"":" closed"}">
+      <button class="ghead" data-group="${g.k}" aria-expanded="${S.open[g.k]}">${g.n}${CHEV}</button>
+      <div class="rows">${MODELS.filter(m=>m.g===g.k).map(m=>{
+        const sel=S.picked.includes(m.id), dis=!sel&&S.picked.length>=3;
+        return `<div class="row${sel?" sel":""}${dis?" dis":""}" data-pick="${m.id}" role="checkbox" aria-checked="${sel}" tabindex="0"><span>${esc(m.n)}</span><span class="cbox">${TICK}</span></div>`;
+      }).join("")}</div>
+    </div>`).join("");
+}
+function railPZ(){
+  const base = M(S.base).w;
+  return `
+    <div class="field">
+      <label class="lbl" for="baseSel">Starting CIO model</label>
+      <div class="selwrap" style="width:100%;font-size:14px">
+        <select id="baseSel">${GROUPS.map(g=>`<optgroup label="${g.n}">${MODELS.filter(m=>m.g===g.k).map(m=>`<option value="${m.id}"${m.id===S.base?" selected":""}>${esc(m.n)}</option>`).join("")}</optgroup>`).join("")}</select>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6l5 5 5-5"/></svg>
+      </div>
+    </div>
+    <div class="pz-h">Client preferences</div>
+    <div class="pz-sub">The middle answer keeps the CIO weights. Each answer shifts one pair of similar asset classes.</div>
+    ${QS.map(q=>{
+      const n=S.ans[q.k];
+      return `<div class="q">
+        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate">${q.lv[n+2]}</span></div>
+        <div class="qtext">${q.q}</div>
+        <div class="scale" role="group" aria-label="${q.t}">
+          ${[-2,-1,0,1,2].map(v=>{
+            const ok = v===0 || avail(q, base, v);
+            const lab = v===0?"CIO":(v<0?"‹".repeat(-v):"›".repeat(v));
+            return `<button class="${v===0?"mid":""}" data-q="${q.k}" data-v="${v}" aria-pressed="${n===v}" ${ok?"":"disabled"} aria-label="${q.lv[v+2]}">${lab}</button>`;
+          }).join("")}
+        </div>
+        <div class="poles"><span>${q.L}</span><span>${q.Rt}</span></div>
+        <div class="pair">${AC[IDX[q.from]].n} ↔ ${AC[IDX[q.to]].n}</div>
+      </div>`;}).join("")}
+    <button class="reset" id="resetAns">Reset to CIO view</button>`;
+}
+
+// ---------- Stage (personalized)
+function changeTile(base, res){
+  const w=res.w, diffs = AC.map((a,i)=>({a, d:w[i]-base[i]})).filter(x=>x.d!==0);
+  const maxAbs = Math.max(12, ...diffs.map(x=>Math.abs(x.d)));
+  const vb=vol(base), vp=vol(w), t=te(w,base), dv=vp-vb;
+  const ok = t<=TE_LIMIT && Math.abs(dv)<=VOL_LIMIT;
+  const bars = diffs.length? `<div class="bars">${diffs.map(({a,d})=>{
+      const pct = Math.abs(d)/maxAbs*50;
+      const left = d>0?50:50-pct;
+      return `<div class="bar"><span>${a.n}</span><span class="track"><span class="fill" style="left:${left}%;width:${pct}%;background:${a.c}"></span></span><span class="bv" style="color:var(${d>0?"--up":"--down"})">${sgn(d)}</span></div>`;
+    }).join("")}</div>` : `<div class="nochange">No changes yet. Answer a preference to tilt the CIO model.</div>`;
+  const why = res.moves.length ? `<div class="why">${res.moves.map(m=>`<div><b>${m.q.t}: ${m.q.lv[m.n+2].toLowerCase().replace(/^./,c=>c.toUpperCase())}</b><span>${AC[IDX[m.q.to]].n} ${sgn(m.amt)}, ${AC[IDX[m.q.from]].n} ${sgn(-m.amt)}</span></div>`).join("")}</div>`
+                          : `<div class="nochange" style="padding-top:0">Recorded answers appear here and print on the proposal.</div>`;
+  return `<div class="tile">
+    <div class="ch-h">What changed</div>
+    <div class="ch-sub">vs. CIO model, percentage points</div>
+    <div class="sect">Allocation shifts</div>
+    ${bars}
+    <div class="sect">Risk check</div>
+    <div class="risk">
+      <span class="rh"></span><span class="rh">CIO</span><span class="rh"></span><span class="rh">Personalized</span>
+      <span>Est. volatility</span><span>${vb.toFixed(2)}%</span><span class="arr">→</span><span>${vp.toFixed(2)}%</span>
+      <span>Tracking vs. CIO</span><span>—</span><span class="arr">→</span><span>${t.toFixed(2)}%</span>
+    </div>
+    <div><span class="pill ${ok?"ok":"warn"}"><i></i>${ok?`Within CIO guardrails (≤ ${TE_LIMIT.toFixed(1)}% tracking)`:"Outside guardrails, review with CIO"}</span></div>
+    <div class="sect">Client preferences recorded</div>
+    ${why}
+    <div class="fine">Personalized weights stay on CIO's 0.5% grid and inside the same risk tolerance. The advisor selects products as usual.</div>
+  </div>`;
+}
+
+// ---------- Render
+function render(){
+  const pz = S.method==="pz";
+  $("#method").value = S.method;
+  $("#sa-pz-wrap").hidden = !pz;
+  if(!pz && $("#sa-pz").checked) $("#sa-cio").checked = true;
+  $("#stageTitle").textContent = "Allocation Method: " + (pz?"Personalized":"CIO Models");
+  $("#railBody").innerHTML = pz ? railPZ() : railCIO();
+  const tiles = $("#tiles");
+  if(!pz){
+    const ms = S.picked.map(M);
+    tiles.innerHTML = ms.map(m=>modelTile(m,{close:true, personalize:true})).join("") +
+      (ms.length<3 ? `<div class="empty">Select a model on the left to compare</div>`.repeat(Math.min(1,3-ms.length)) : "");
+    ms.forEach(m=>drawDonut(tiles.querySelector(`[data-donut="cio-${m.id}"]`), "cio-"+m.id, m.w));
+  } else {
+    const m = M(S.base), res = personalize(m.w, S.ans);
+    tiles.innerHTML = modelTile(m) + `
+      <div class="tile pz">
+        <div class="tkind">Personalized Allocation</div>
+        <div class="tname">Based on CIO ${esc(m.n)}</div>
+        <div class="tbadge"><span>NEW</span></div>
+        <div class="donut" data-donut="pz"></div>
+        ${legend(res.w, m.w)}
+      </div>` + changeTile(m.w, res);
+    drawDonut(tiles.querySelector(`[data-donut="cio-${m.id}"]`), "cio-"+m.id, m.w);
+    drawDonut(tiles.querySelector(`[data-donut="pz"]`), "pz", res.w);
+  }
+}
+
+// ---------- Events
+$("#method").addEventListener("change", e=>{ S.method=e.target.value; if(S.method==="pz") $("#sa-pz").checked=true; render(); });
+document.addEventListener("click", e=>{
+  const t=e.target.closest("[data-group],[data-pick],[data-unpick],[data-pz],[data-q],#resetAns,#apply,#cancel"); if(!t) return;
+  if(t.dataset.group){ S.open[t.dataset.group]=!S.open[t.dataset.group]; render(); return; }
+  if(t.dataset.pick){ const id=t.dataset.pick, i=S.picked.indexOf(id);
+    if(i>=0) S.picked.splice(i,1); else if(S.picked.length<3) S.picked.push(id); render(); return; }
+  if(t.dataset.unpick){ S.picked=S.picked.filter(x=>x!==t.dataset.unpick); render(); return; }
+  if(t.dataset.pz){ S.base=t.dataset.pz; S.method="pz"; $("#sa-pz").checked=true; clampAnswers(); render(); return; }
+  if(t.dataset.q){ S.ans[t.dataset.q]=+t.dataset.v; render(); return; }
+  if(t.id==="resetAns"){ for(const k in S.ans) S.ans[k]=0; render(); return; }
+  if(t.id==="apply"){ const v=document.querySelector('input[name="setalloc"]:checked').value;
+    toast(v==="pz"?"Personalized allocation set for this proposal":v==="cio"?"CIO model allocation set for this proposal":"Proposed allocation set for this proposal"); return; }
+  if(t.id==="cancel"){ toast("No changes applied"); return; }
+});
+document.addEventListener("keydown", e=>{ const r=e.target.closest("[data-pick]"); if(r&&(e.key===" "||e.key==="Enter")){e.preventDefault(); r.click();} });
+document.addEventListener("change", e=>{ if(e.target.id==="baseSel"){ S.base=e.target.value; clampAnswers(); render(); } });
+function clampAnswers(){ const b=M(S.base).w; for(const q of QS){ const n=S.ans[q.k]; if(n && !avail(q,b,n)) S.ans[q.k]=0; } }
+let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,2200); }
+
+render();
+</script>
+
+</html>
