@@ -81,7 +81,8 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .row.sel .cbox svg{display:block}
 
 /* personalized controls */
-.basenm{font-size:15px;font-weight:600;text-wrap:balance}
+.basenm{font-size:14.5px;font-weight:600;line-height:1.3}
+.field.tight{margin-bottom:16px}
 .pz-h{font-size:15px;font-weight:600;margin-bottom:4px}
 .pz-sub{font-size:13px;color:var(--muted);margin-bottom:14px}
 .q{padding:12px 0 14px;border-top:1px solid var(--line)}
@@ -146,8 +147,19 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .tile .tx{position:absolute;right:10px;top:10px}
 .tkind{text-align:center;font-weight:600;letter-spacing:.4px;text-transform:uppercase;font-size:14.5px;padding-inline:22px}
 .tname{text-align:center;font-weight:600;font-size:14.5px;padding-inline:22px;text-wrap:balance;min-height:2.7em}
-.tbadge{display:flex;justify-content:center;margin-top:4px}
-.tbadge span{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--accent);border:1px solid var(--accent);padding:1px 6px 0;border-radius:2px}
+/* Role tags: one line above the tile title says which tile is which, so the model name is written only once */
+.ttag{display:flex;justify-content:center;margin-bottom:8px}
+.ttag span{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;padding:3px 8px 1px;border-radius:2px;border:1px solid var(--faint);color:var(--muted)}
+.ttag.pz span{background:var(--fg);border-color:var(--fg);color:var(--bg)}
+.tstat{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:2.7em;padding-top:3px}
+.dots{display:flex;gap:5px}
+.dots i{width:22px;height:4px;border-radius:2px;background:var(--track);transition:background .25s}
+.dots i.on{background:var(--up)}
+.tstat span{font-size:13px;color:var(--muted)}
+/* connector between base and personalized tiles */
+.tile.pz::before{content:"";position:absolute;left:-10px;top:218px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:var(--bg);border:1.5px solid var(--rule);z-index:2;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2333363b' stroke-width='2'%3E%3Cpath d='M6 3.5L10.5 8 6 12.5'/%3E%3C/svg%3E");background-size:12px;background-repeat:no-repeat;background-position:55% 50%}
+@media (max-width:1180px){.tile.pz::before{display:none}}
 .donut{display:flex;justify-content:center;padding:16px 0 18px}
 .donut svg{width:min(100%,220px);height:auto}
 .legend{display:flex;flex-direction:column;gap:9px}
@@ -378,7 +390,7 @@ function modelTile(m, opts={}){
   const kind = GROUPS.find(g=>g.k===m.g).kind;
   return `<div class="tile">
     ${opts.close?`<button class="xbtn tx" data-unpick="${m.id}" aria-label="Remove ${esc(m.n)}">${X}</button>`:""}
-    <div class="tkind">${kind}</div><div class="tname">${esc(m.n)}</div>
+    ${opts.tag?`<div class="ttag"><span>${opts.tag}</span></div>`:""}<div class="tkind">${kind}</div><div class="tname">${esc(m.n)}</div>
     <div class="donut" data-donut="cio-${m.id}"></div>
     ${legend(m.w)}
     ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg>${m.id===S.base&&Object.values(S.ans).some(Boolean)?"Edit personalization":"Personalize"}</button>`:""}
@@ -399,7 +411,7 @@ function railCIO(){
 function railPZ(){
   const base = M(S.base).w;
   return `
-    <div class="field">
+    <div class="field tight">
       <span class="lbl">Personalizing from</span>
       <span class="basenm">${esc(M(S.base).n)}</span>
     </div>
@@ -472,11 +484,12 @@ function renderStage(){
     const last = S.lastPz && S.lastPz.base===S.base ? S.lastPz.w : res.w;
     const changed = new Set(res.w.map((x,i)=>x!==last[i]?i:-1).filter(i=>i>=0));
     S.lastPz = {base:S.base, w:res.w.slice()};
-    tiles.innerHTML = modelTile(m) + `
+    const nOn = QS.filter(q=>S.ans[q.k]).length;
+    tiles.innerHTML = modelTile(m,{tag:"CIO base"}) + `
       <div class="tile pz">
+        <div class="ttag pz"><span>Personalized</span></div>
         <div class="tkind">Personalized Allocation</div>
-        <div class="tname">Based on CIO ${esc(m.n)}</div>
-        <div class="tbadge"><span>NEW</span></div>
+        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${S.ans[q.k]?"on":""}" title="${q.t}"></i>`).join("")}</div><span>${nOn?`${nOn} of ${QS.length} preferences applied`:"Matches CIO base"}</span></div>
         <div class="donut" data-donut="pz"></div>
         ${legend(res.w, m.w, pzRows(m.w), changed)}
       </div>` + changeTile(m.w, res);
