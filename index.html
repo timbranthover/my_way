@@ -214,6 +214,32 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .btn.primary{background:var(--fg);color:var(--bg)}
 .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px 8px;font-size:14px;border-radius:2px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 @media (prefers-reduced-motion:reduce){.fill{transition:none}.tile.pz,.pulse{animation:none}}
+
+/* Profile-derived inputs */
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.rsec{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:2px 0 4px;padding-bottom:6px;border-bottom:1.5px solid var(--rule)}
+.rsec b{font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--fg)}
+.rsec + .q{border-top:0}
+.q.prof + .rsec,.q + .rsec{margin-top:18px}
+.csel{appearance:none;-webkit-appearance:none;font-size:12.5px;border:1px solid var(--line);border-radius:2px;padding:3px 24px 1px 8px;cursor:pointer;
+  background:var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2333363b' stroke-width='1.8'%3E%3Cpath d='M3 6l5 5 5-5'/%3E%3C/svg%3E") right 7px center/10px no-repeat}
+.fact{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin:3px 0 10px}
+.fact svg{width:15px;height:15px;flex:none;color:var(--faint)}
+.sl .pmark{position:absolute;top:26px;width:0;height:0;margin-left:-4px;border:4px solid transparent;border-top:0;border-bottom:5px solid var(--fg);z-index:1}
+.seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--rule);border-radius:2px;overflow:hidden}
+.seg button{position:relative;border:0;border-left:1px solid var(--line);background:var(--bg);padding:7px 0 5px;font-size:13px;cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-checked="true"]{background:var(--fg);color:var(--bg);font-weight:600}
+.seg button:disabled{color:#b3b7be;cursor:not-allowed;background:repeating-linear-gradient(135deg,#eef0f3 0 2px,#f8f9fa 2px 5px)}
+.seg button.der::after{content:"";position:absolute;left:50%;bottom:2px;margin-left:-4px;border:4px solid transparent;border-top:0;border-bottom:4px solid currentColor;opacity:.75}
+.ovr{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ovr:not(:empty){margin-top:10px}
+.ochip{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:3px 6px 1px;border-radius:2px;background:var(--warn-bg);color:var(--warn)}
+.rsel{flex:1;min-width:0;font-size:12.5px;border:1px solid var(--line);border-radius:2px;padding:3px 6px 2px;background:var(--bg)}
+.rsel.miss{border-color:var(--warn);color:var(--warn)}
+.ghd b em{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.6px;padding:2px 5px 0;border-radius:2px;margin-left:7px;vertical-align:1px}
+.ghd b em.p{background:#e6e8ec;color:var(--muted)} .ghd b em.o{background:var(--warn-bg);color:var(--warn)} .ghd b em.c{background:var(--up-bg);color:var(--up)}
+.dots i.on.p{background:var(--fg)} .dots i.on.c{background:var(--up)}
 </style>
 
 <div class="modal">
@@ -275,14 +301,15 @@ const AC = [
   {k:"tips", n:"Treasury Inflation-Protected Securities", c:"#a28b97", v:5.5},
   {k:"sec",  n:"Securitized",                          c:"#b9a0a0", v:5.0},
   {k:"lc",   n:"Large Cap",                            c:"#5bb6ec", v:16},
+  {k:"ei",   n:"US Equity Income",                     c:"#2c7ea6", v:14},
   {k:"mc",   n:"Mid Cap",                              c:"#0b63c6", v:18},
   {k:"sc",   n:"Small Cap",                            c:"#6aa7e2", v:21},
   {k:"dm",   n:"Developed Markets",                    c:"#819ee3", v:17},
   {k:"hf",   n:"Hedge Funds",                          c:"#3f3422", v:6.5},
 ];
 const IDX = Object.fromEntries(AC.map((a,i)=>[a.k,i]));
-// Illustrative correlation matrix (positive definite, min eigenvalue 0.068). Stand-in for CIO capital market assumptions.
-const R = [[1,0,0,0,0,0,0,0,0,0,0],[0,1,.7,.7,.75,.8,-.1,-.1,-.1,-.1,0],[0,.7,1,.6,.55,.6,.1,.1,.1,.1,.2],[0,.7,.6,1,.6,.7,.3,.3,.3,.3,.4],[0,.75,.55,.6,1,.6,.1,.1,.1,.1,.2],[0,.8,.6,.7,.6,1,.1,.1,.1,.1,.3],[0,-.1,.1,.3,.1,.1,1,.9,.85,.85,.7],[0,-.1,.1,.3,.1,.1,.9,1,.92,.8,.7],[0,-.1,.1,.3,.1,.1,.85,.92,1,.75,.7],[0,-.1,.1,.3,.1,.1,.85,.8,.75,1,.7],[0,0,.2,.4,.2,.3,.7,.7,.7,.7,1]];
+// Illustrative correlation matrix (positive definite, min eigenvalue 0.066). Stand-in for CIO capital market assumptions.
+const R = [[1,0,0,0,0,0,0,0,0,0,0,0],[0,1,.7,.7,.75,.8,-.1,-.05,-.1,-.1,-.1,0],[0,.7,1,.6,.55,.6,.1,.1,.1,.1,.1,.2],[0,.7,.6,1,.6,.7,.3,.3,.3,.3,.3,.4],[0,.75,.55,.6,1,.6,.1,.1,.1,.1,.1,.2],[0,.8,.6,.7,.6,1,.1,.1,.1,.1,.1,.3],[0,-.1,.1,.3,.1,.1,1,.9,.9,.85,.85,.7],[0,-.05,.1,.3,.1,.1,.9,1,.85,.8,.8,.65],[0,-.1,.1,.3,.1,.1,.9,.85,1,.92,.8,.7],[0,-.1,.1,.3,.1,.1,.85,.8,.92,1,.75,.7],[0,-.1,.1,.3,.1,.1,.85,.8,.8,.75,1,.7],[0,0,.2,.4,.2,.3,.7,.65,.7,.7,.7,1]];
 const COV = R.map((r,i)=>r.map((x,j)=>x*AC[i].v*AC[j].v));
 
 // ---------- CIO models (Conservative). First three are as shown on the production screen; the rest are illustrative.
@@ -300,43 +327,103 @@ const MODELS = [
 const GROUPS = [{k:"saa",n:"Strategic Asset Allocation",kind:"Strategic Asset Allocation"},{k:"uhnw",n:"UHNW",kind:"UHNW"},{k:"inst",n:"Institutional",kind:"Institutional"}];
 const M = id => MODELS.find(m=>m.id===id);
 
-// ---------- Preference questions. Each moves weight between ONE like-for-like pair; no two questions share an asset class.
+// ---------- Sample client records (illustrative). In production these facts come from the client's investment profile.
+const CLIENTS = [
+ {id:"a", n:"Client A", bracket:37, state:"New York",   elig:"Qualified purchaser", eligible:true,  liq:"Low"},
+ {id:"b", n:"Client B", bracket:32, state:"Texas",      elig:"Accredited investor", eligible:true,  liq:"Moderate"},
+ {id:"c", n:"Client C", bracket:24, state:"Florida",    elig:"Not accredited",      eligible:false, liq:"Moderate"},
+];
+const C = id => CLIENTS.find(c=>c.id===id);
+
+// ---------- Personalization inputs.
+// "profile" inputs are derived from facts already on file; the advisor may override with a recorded reason.
+// "client" inputs are true preferences of equal risk, asked of the client.
+// Pair inputs move weight between one like-for-like pair. Geography and Income both draw on Large Cap;
+// each is capped at 30% of the CIO sleeve, so the most Large Cap can lose is 60% and weights never go negative.
 const STEP = 0.15;           // share of the source sleeve moved per notch (CIO-set parameter)
 const GRID = 0.5;            // CIO publishes weights on a 0.5% grid
 const TE_LIMIT = 1.0, VOL_LIMIT = 0.5;
 const QS = [
- {k:"tax", t:"Taxes",     q:"Higher yield before tax, or a lower tax bill?", from:"corp", to:"muni", L:"Higher pre-tax yield", Rt:"Lower tax bill",
+ {k:"tax", src:"profile", kind:"pair", t:"Taxes", from:"corp", to:"muni", L:"Higher pre-tax yield", Rt:"Lower tax bill",
   lv:["Strongly prefers taxable","Leans taxable","CIO view","Leans tax-exempt","Strongly prefers tax-exempt"]},
- {k:"inf", t:"Inflation", q:"How much protection against rising prices?",    from:"gov",  to:"tips", L:"Nominal Treasuries", Rt:"Inflation-protected",
-  lv:["Prefers nominal bonds","Leans nominal","CIO view","Leans inflation-protected","Strong inflation concern"]},
- {k:"liq", t:"Liquidity", q:"How much can sit in investments that are slower to sell?", from:"sec", to:"hf", L:"Keep it liquid", Rt:"Comfortable with lock-ups",
-  lv:["Needs high liquidity","Leans liquid","CIO view","Leans alternatives","Comfortable with lock-ups"]},
- {k:"geo", t:"Geography", q:"Where should the stock portion lean?",           from:"lc",   to:"dm",   L:"Closer to home (US)", Rt:"More global",
+ {k:"alt", src:"profile", kind:"gate", t:"Alternatives", opts:["Full","Reduced","None"],
+  lv:["Full CIO weight","Reduced by half","No alternatives"]},
+ {k:"geo", src:"client", kind:"pair", t:"Geography", q:"Where should the stock portion lean?", from:"lc", to:"dm", L:"Closer to home (US)", Rt:"More global",
   lv:["Strong US preference","Leans US","CIO view","Leans global","Strong global preference"]},
+ {k:"inc", src:"client", kind:"pair", t:"Income", q:"Draw on dividends, or focus on total return?", from:"lc", to:"ei", L:"Total return", Rt:"Dividend income",
+  lv:["Total return","Total return","CIO view","Leans income","Strong income focus"]},
 ];
+const QK = k => QS.find(q=>q.k===k);
+const PROFILE = QS.filter(q=>q.src==="profile"), PREFS = QS.filter(q=>q.src==="client");
 
-// ---------- Engine: base weights + answers -> personalized weights (sum preserved exactly)
+// Facts -> settings. Pure function of the client record and the chosen CIO model, so the same client always gets the same answer.
+function derive(c, base){
+  const out = {};
+  // Taxes: bracket sets how tax-exempt the bond sleeve should lean. A muni-heavy CIO model already leans exempt.
+  const lean = c.bracket>=35 ? 2 : c.bracket>=32 ? 1 : 0;
+  let tax = base[IDX.muni] >= base[IDX.corp] ? lean-2 : lean;
+  if(!avail(QK("tax"), base, tax)) tax = 0;
+  out.tax = tax;
+  // Alternatives: eligibility first, then the liquidity need on file.
+  out.alt = base[IDX.hf]===0 ? 0 : !c.eligible ? 2 : c.liq==="High" ? 2 : c.liq==="Moderate" ? 1 : 0;
+  return out;
+}
+function factLine(q, c){
+  if(q.k==="tax") return `${c.bracket}% federal bracket · ${c.state}`;
+  if(q.k==="alt") return `${c.elig} · ${c.liq} liquidity need`;
+  return "";
+}
+function deriveWhy(q, c, base, n){
+  if(q.k==="tax") return n===0 ? `CIO mix already fits a ${c.bracket}% bracket` : `${c.bracket}% bracket, ${c.state}`;
+  if(q.k==="alt") return base[IDX.hf]===0 ? "Not in this CIO model" : !c.eligible ? `${c.elig}` : `${c.liq} liquidity need`;
+  return "";
+}
+
+// ---------- Engine: base weights + inputs -> personalized weights (sum preserved exactly, every weight on the 0.5% grid)
 const snap = x => Math.round(x/GRID)*GRID;
 function personalize(base, ans){
   const w = base.slice(); const moves = [];
   for(const q of QS){
+    if(q.kind!=="pair") continue;
     const n = ans[q.k]||0; if(!n) continue;
     const a = IDX[q.from], b = IDX[q.to];
-    // positive notches move from->to, sized on the source sleeve; negative move to->from
-    let amt = n>0 ? snap(base[a]*STEP*n) : -snap(base[b]*STEP*(-n));
+    // positive notches move from->to, sized on the CIO source sleeve; negative move to->from
+    const amt = n>0 ? snap(base[a]*STEP*n) : -snap(base[b]*STEP*(-n));
     w[a] -= amt; w[b] += amt;
     if(amt) moves.push({q, n, amt});
+  }
+  // Alternatives gate: remove half or all of the hedge fund sleeve and spread it across the rest pro-rata,
+  // which is the same shape as the CIO model without alternatives.
+  const g = ans.alt||0, h = IDX.hf;
+  if(g && base[h]>0){
+    const amt = g===2 ? base[h] : snap(base[h]*0.5);
+    w[h] -= amt;
+    const idx = w.map((x,i)=>i).filter(i=>i!==h && w[i]>0);
+    const tot = idx.reduce((s,i)=>s+w[i],0);
+    const add = {}; let given = 0;
+    idx.forEach(i=>{ add[i]=snap(amt*w[i]/tot); given+=add[i]; });
+    const big = idx.reduce((p,i)=>w[i]>w[p]?i:p, idx[0]);
+    add[big] += amt-given;                      // rounding residual goes to the largest sleeve
+    idx.forEach(i=>w[i]+=add[i]);
+    moves.push({q:QK("alt"), n:g, amt, add});
   }
   return {w, moves};
 }
 function quad(x){let s=0;for(let i=0;i<x.length;i++)for(let j=0;j<x.length;j++)s+=x[i]*COV[i][j]*x[j];return s}
 const vol = w => Math.sqrt(quad(w.map(x=>x/100)));
 const te  = (a,b) => Math.sqrt(quad(a.map((x,i)=>(x-b[i])/100)));
-const avail = (q, base, n) => n>0 ? base[IDX[q.from]]>0 : base[IDX[q.to]]>0;
+function avail(q, base, n){ if(!n) return true; if(q.kind!=="pair") return true; return n>0 ? base[IDX[q.from]]>0 : base[IDX[q.to]]>0; }
 
 // ---------- State
-const S = { method:"cio", picked:["m1","m2","m6"], open:{saa:true,uhnw:true,inst:true}, base:"m6", ans:{tax:0,inf:0,liq:0,geo:0} };
+const S = { method:"cio", picked:["m1","m2","m6"], open:{saa:true,uhnw:true,inst:true}, base:"m6", client:"a",
+            ans:{tax:0,alt:0,geo:0,inc:0}, der:{tax:0,alt:0}, why:{tax:"",alt:""} };
 const prev = {}; // last drawn weights per donut, for tweening
+const isOver = k => S.ans[k]!==S.der[k];
+function startFrom(baseId){
+  S.base = baseId; const b = M(baseId).w;
+  S.der = derive(C(S.client), b);
+  S.ans = {tax:S.der.tax, alt:S.der.alt, geo:0, inc:0}; S.why = {tax:"",alt:""};
+}
 
 // ---------- Helpers
 const $ = s => document.querySelector(s);
@@ -346,10 +433,11 @@ const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 const X = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg>';
 const CHEV = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5-5 5 5"/></svg>';
 const TICK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+const REC = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1.6"/><path d="M3.8 11c.4-1.2 1.2-1.8 2.2-1.8s1.8.6 2.2 1.8M9.5 6.5h3M9.5 9h2"/></svg>';
+const REASONS = ["Client request","Held-away assets","Expected change in circumstances","Other (see proposal notes)"];
 
 // ---------- Donut (SVG, counter-clockwise from 3 o'clock, tweened)
 function arcPath(cx,cy,r0,r1,a0,a1){
-  // angles in radians, measured counter-clockwise from east; SVG y is down so negate
   const large = (a1-a0)>Math.PI?1:0;
   const p=(r,a)=>[cx+r*Math.cos(a), cy-r*Math.sin(a)];
   const [x0,y0]=p(r1,a0),[x1,y1]=p(r1,a1),[x2,y2]=p(r0,a1),[x3,y3]=p(r0,a0);
@@ -373,11 +461,11 @@ function drawDonut(el, key, w){
 }
 
 // ---------- Tiles
-// Rows a personalized legend can ever need for this base: every held class plus any class a question could move into.
-// Keeping the row set fixed means the tile never changes height as answers change.
+// Rows a personalized legend can ever need for this base: every held class plus any class an input could move into.
+// Keeping the row set fixed means the tile never changes height as inputs change.
 function pzRows(base){
   const s = new Set(AC.map((a,i)=>i).filter(i=>base[i]>0));
-  for(const q of QS){ const a=IDX[q.from], b=IDX[q.to]; if(base[a]>0) s.add(b); if(base[b]>0) s.add(a); }
+  for(const q of QS){ if(q.kind!=="pair") continue; const a=IDX[q.from], b=IDX[q.to]; if(base[a]>0) s.add(b); if(base[b]>0) s.add(a); }
   return s;
 }
 function legend(w, base, rows, changed){
@@ -394,7 +482,7 @@ function modelTile(m, opts={}){
     ${opts.tag?`<div class="ttag"><span>${opts.tag}</span></div>`:""}<div class="tkind">${kind}</div><div class="tname">${esc(m.n)}</div>
     <div class="donut" data-donut="cio-${m.id}"></div>
     ${legend(m.w)}
-    ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg>${m.id===S.base&&Object.values(S.ans).some(Boolean)?"Edit personalization":"Personalize"}</button>`:""}
+    ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg>${m.id===S.base&&S.started?"Edit personalization":"Personalize"}</button>`:""}
   </div>`;
 }
 
@@ -409,45 +497,79 @@ function railCIO(){
       }).join("")}</div>
     </div>`).join("");
 }
+function sliderHTML(q, base){
+  const n=S.ans[q.k];
+  return `<div class="sl" data-sl="${q.k}" role="slider" tabindex="0" aria-label="${q.t}" aria-valuemin="-2" aria-valuemax="2" aria-valuenow="${n}" aria-valuetext="${q.lv[n+2]}">
+      <div class="tr"></div>
+      ${avail(q,base,-1)?"":`<div class="hatch" style="left:0"></div>`}${avail(q,base,1)?"":`<div class="hatch" style="left:50%"></div>`}
+      <div class="sfill"></div>
+      ${[-2,-1,0,1,2].map(v=>`<div class="tick${v===0?" mid":""}" style="left:${(v+2)*25}%"></div>`).join("")}
+      ${q.src==="profile"?`<div class="pmark" style="left:${(S.der[q.k]+2)*25}%" title="Client profile"></div>`:""}
+      <div class="thumb"></div>
+      <div class="tip" aria-hidden="true"></div>
+    </div>
+    <div class="poles"><span>${q.L}</span><span>${q.Rt}</span></div>`;
+}
+function gateHTML(q, base, c){
+  const none = base[IDX.hf]===0;
+  return `<div class="seg" role="radiogroup" aria-label="${q.t}">${q.opts.map((o,v)=>{
+      const dis = none ? v!==0 : (!c.eligible && v<2);
+      return `<button role="radio" data-gate="${q.k}" data-v="${v}" aria-checked="${S.ans[q.k]===v}" ${dis?"disabled":""} class="${S.der[q.k]===v&&!none?"der":""}">${none&&v===0?"Not in model":o}</button>`;
+    }).join("")}</div>`;
+}
+function overrideHTML(q){
+  if(!isOver(q.k)) return "";
+  const miss = !S.why[q.k];
+  return `<span class="ochip">Advisor override</span>
+    <select class="rsel${miss?" miss":""}" data-why="${q.k}" aria-label="Reason for ${q.t} override">
+      <option value="">Reason required…</option>${REASONS.map(r=>`<option${S.why[q.k]===r?" selected":""}>${r}</option>`).join("")}
+    </select>`;
+}
 function railPZ(){
-  const base = M(S.base).w;
+  const base = M(S.base).w, c = C(S.client);
   return `
     <div class="field tight">
       <span class="lbl">Personalizing from</span>
       <span class="basenm">${esc(M(S.base).n)}</span>
     </div>
-    <div class="pz-h">Client preferences</div>
-    <div class="pz-sub">The center keeps the CIO weights. Each slider shifts one pair of similar asset classes.</div>
-    ${QS.map(q=>{
-      const n=S.ans[q.k];
-      return `<div class="q">
-        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate" data-qs="${q.k}">${q.lv[n+2]}</span></div>
+    <div class="rsec"><b>From client profile</b>
+      <span class="cwrap"><label for="clientSel" class="vh">Client record</label><select id="clientSel" class="csel">${CLIENTS.map(x=>`<option value="${x.id}"${x.id===S.client?" selected":""}>${x.n} (sample)</option>`).join("")}</select></span>
+    </div>
+    ${PROFILE.map(q=>`<div class="q prof">
+        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate" data-qs="${q.k}">${q.kind==="gate"?q.lv[S.ans[q.k]]:q.lv[S.ans[q.k]+2]}</span></div>
+        <div class="fact">${REC}<span>${factLine(q,c)}</span></div>
+        ${q.kind==="gate"?gateHTML(q,base,c):sliderHTML(q,base)}
+        <div class="ovr" data-ov="${q.k}">${overrideHTML(q)}</div>
+      </div>`).join("")}
+    <div class="rsec"><b>Client preferences</b></div>
+    ${PREFS.map(q=>`<div class="q">
+        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate" data-qs="${q.k}">${q.lv[S.ans[q.k]+2]}</span></div>
         <div class="qtext">${q.q}</div>
-        <div class="sl" data-sl="${q.k}" role="slider" tabindex="0" aria-label="${q.t}" aria-valuemin="-2" aria-valuemax="2" aria-valuenow="${n}" aria-valuetext="${q.lv[n+2]}">
-          <div class="tr"></div>
-          ${avail(q,base,-1)?"":`<div class="hatch" style="left:0"></div>`}${avail(q,base,1)?"":`<div class="hatch" style="left:50%"></div>`}
-          <div class="sfill"></div>
-          ${[-2,-1,0,1,2].map(v=>`<div class="tick${v===0?" mid":""}" style="left:${(v+2)*25}%"></div>`).join("")}
-          <div class="thumb"></div>
-          <div class="tip" aria-hidden="true"></div>
-        </div>
-        <div class="poles"><span>${q.L}</span><span>${q.Rt}</span></div>
-        <div class="pair">${AC[IDX[q.from]].n} ↔ ${AC[IDX[q.to]].n}</div>
-      </div>`;}).join("")}
-    <button class="reset" id="resetAns">Reset to CIO view</button>`;
+        ${sliderHTML(q,base)}
+      </div>`).join("")}
+    <button class="reset" id="resetAns">Reset to client profile</button>`;
 }
 
 // ---------- Stage (personalized)
+function srcChip(q){ return q.src==="client" ? `<em class="c">Client</em>` : isOver(q.k) ? `<em class="o">Override</em>` : `<em class="p">Profile</em>`; }
 function changeTile(base, res){
   const w=res.w;
-  const SCALE = 15; // fixed axis: ±15 points, so bars never rescale between answers
+  const SCALE = 15; // fixed axis: ±15 points, so bars never rescale between inputs
   const vb=vol(base), vp=vol(w), t=te(w,base), dv=vp-vb;
   const ok = t<=TE_LIMIT && Math.abs(dv)<=VOL_LIMIT;
-  const row = i => { const a=AC[i], d=w[i]-base[i], pct=Math.min(50,Math.abs(d)/SCALE*50), left=d>0?50:50-pct;
-    return `<div class="bar${d?"":" z"}"><span class="nm">${a.n}</span><span class="track"><span class="fill" style="left:${left}%;width:${pct}%;background:${a.c}"></span></span><span class="bv ${d>0?"up":d<0?"dn":"zv"}">${d?sgn(d):"0"}</span></div>`; };
-  // One block per question: always four blocks, two rows each, so the tile keeps its size.
-  const grps = `<div class="grps">${QS.map(q=>{ const n=S.ans[q.k];
-    return `<div class="grp${n?" on":""}"><div class="ghd"><b>${q.t}</b><span>${q.lv[n+2]}</span></div>${row(IDX[q.to])}${row(IDX[q.from])}</div>`; }).join("")}</div>`;
+  const bar = (name, d, color) => { const pct=Math.min(50,Math.abs(d)/SCALE*50), left=d>0?50:50-pct;
+    return `<div class="bar${d?"":" z"}"><span class="nm">${name}</span><span class="track"><span class="fill" style="left:${left}%;width:${pct}%;background:${color}"></span></span><span class="bv ${d>0?"up":d<0?"dn":"zv"}">${d?sgn(d):"0"}</span></div>`; };
+  const mv = k => res.moves.find(m=>m.q.k===k);
+  // One block per input: always four blocks, two rows each, so the tile keeps its size.
+  const grps = `<div class="grps">${QS.map(q=>{
+    const n=S.ans[q.k], on = (q.kind==="gate" ? n>0 && base[IDX.hf]>0 : !!n) || (q.src==="profile" && isOver(q.k));
+    const state = q.kind==="gate" ? (base[IDX.hf]===0 ? "Not in model" : q.lv[n]) : q.lv[n+2];
+    let rows;
+    if(q.kind==="gate"){ const m=mv("alt"), amt=m?m.amt:0;
+      rows = bar("Hedge Funds", -amt, AC[IDX.hf].c) + bar("Rest of portfolio", amt, "#9aa1ab"); }
+    else { const m=mv(q.k), amt=m?m.amt:0;
+      rows = bar(AC[IDX[q.to]].n, amt, AC[IDX[q.to]].c) + bar(AC[IDX[q.from]].n, -amt, AC[IDX[q.from]].c); }
+    return `<div class="grp${on?" on":""}"><div class="ghd"><b>${q.t}${srcChip(q)}</b><span>${state}</span></div>${rows}</div>`; }).join("")}</div>`;
   return `<div class="tile">
     <div class="ch-h">What changed</div>
     <div class="ch-sub">vs. CIO model, percentage points</div>
@@ -459,7 +581,7 @@ function changeTile(base, res){
       <span>Tracking vs. CIO</span><span>—</span><span class="arr">→</span><span>${t.toFixed(2)}%</span>
     </div>
     <div><span class="pill ${ok?"ok":"warn"}"><i></i>${ok?`Within CIO guardrails (≤ ${TE_LIMIT.toFixed(1)}% tracking)`:"Outside guardrails, review with CIO"}</span></div>
-    <div class="fine">Personalized weights stay on CIO's 0.5% grid and inside the same risk tolerance. The advisor selects products as usual.</div>
+    <div class="fine">Weights stay on CIO's 0.5% grid and inside the same risk tolerance. The advisor selects products as usual.</div>
   </div>`;
 }
 
@@ -485,12 +607,14 @@ function renderStage(){
     const last = S.lastPz && S.lastPz.base===S.base ? S.lastPz.w : res.w;
     const changed = new Set(res.w.map((x,i)=>x!==last[i]?i:-1).filter(i=>i>=0));
     S.lastPz = {base:S.base, w:res.w.slice()};
-    const nOn = QS.filter(q=>S.ans[q.k]).length;
+    const active = QS.filter(q=>res.moves.some(mv=>mv.q.k===q.k));
+    const nP = active.filter(q=>q.src==="profile").length, nC = active.length-nP;
+    const status = !active.length ? "Matches CIO base" : [nP?`${nP} from profile`:"", nC?`${nC} client ${nC>1?"choices":"choice"}`:""].filter(Boolean).join(" · ");
     tiles.innerHTML = modelTile(m,{tag:"CIO base"}) + `
       <div class="tile pz">
         <div class="ttag pz"><span>Personalized</span></div>
         <div class="tkind">Personalized Allocation</div>
-        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${S.ans[q.k]?"on":""}" title="${q.t}"></i>`).join("")}</div><span>${nOn?`${nOn} of ${QS.length} preferences applied`:"Matches CIO base"}</span></div>
+        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${active.includes(q)?"on "+(q.src==="profile"?"p":"c"):""}" title="${q.t}"></i>`).join("")}</div><span>${status}</span></div>
         <div class="donut" data-donut="pz"></div>
         ${legend(res.w, m.w, pzRows(m.w), changed)}
       </div>` + changeTile(m.w, res);
@@ -498,25 +622,37 @@ function renderStage(){
     drawDonut(tiles.querySelector(`[data-donut="pz"]`), "pz", res.w);
   }
 }
+function refreshOverride(k){ const el=document.querySelector(`[data-ov="${k}"]`); if(el) el.innerHTML = overrideHTML(QK(k)); }
 
 // ---------- Events
 document.addEventListener("click", e=>{
-  const t=e.target.closest("[data-group],[data-pick],[data-unpick],[data-pz],[data-q],#resetAns,#apply,#cancel,#backBtn"); if(!t) return;
+  const t=e.target.closest("[data-group],[data-pick],[data-unpick],[data-pz],[data-gate],#resetAns,#apply,#cancel,#backBtn"); if(!t) return;
   if(t.id==="backBtn"){ S.method="cio"; render(); return; }
   if(t.dataset.group){ S.open[t.dataset.group]=!S.open[t.dataset.group]; render(); return; }
   if(t.dataset.pick){ const id=t.dataset.pick, i=S.picked.indexOf(id);
     if(i>=0) S.picked.splice(i,1); else if(S.picked.length<3) S.picked.push(id); render(); return; }
   if(t.dataset.unpick){ S.picked=S.picked.filter(x=>x!==t.dataset.unpick); render(); return; }
-  if(t.dataset.pz){ if(S.base!==t.dataset.pz){ S.base=t.dataset.pz; for(const k in S.ans) S.ans[k]=0; } S.method="pz"; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
-  if(t.id==="resetAns"){ for(const k in S.ans) S.ans[k]=0; render(); return; }
-  if(t.id==="apply"){ const v=document.querySelector('input[name="setalloc"]:checked').value;
-    const pzOn = S.method==="pz" && Object.values(S.ans).some(Boolean);
-    toast(v==="prop"?"Proposed allocation set for this proposal":pzOn?"Personalized CIO allocation set for this proposal":"CIO model allocation set for this proposal"); return; }
+  if(t.dataset.pz){ if(S.base!==t.dataset.pz || !S.started){ startFrom(t.dataset.pz); S.started=true; } S.method="pz"; render(); window.scrollTo({top:0,behavior:"smooth"}); return; }
+  if(t.dataset.gate){ const k=t.dataset.gate; S.ans[k]=+t.dataset.v; if(!isOver(k)) S.why[k]=""; render(); return; }
+  if(t.id==="resetAns"){ startFrom(S.base); render(); return; }
+  if(t.id==="apply"){
+    const v=document.querySelector('input[name="setalloc"]:checked').value;
+    if(S.method==="pz" && v==="cio"){
+      const miss = PROFILE.find(q=>isOver(q.k) && !S.why[q.k]);
+      if(miss){ toast(`Add a reason for the ${miss.t} override before applying`); const sel=document.querySelector(`[data-why="${miss.k}"]`); if(sel) sel.focus(); return; }
+      const pzOn = personalize(M(S.base).w, S.ans).moves.length>0;
+      toast(pzOn?"Personalized CIO allocation set for this proposal":"CIO model allocation set for this proposal"); return;
+    }
+    toast(v==="prop"?"Proposed allocation set for this proposal":"CIO model allocation set for this proposal"); return; }
   if(t.id==="cancel"){ toast("No changes applied"); return; }
 });
+document.addEventListener("change", e=>{
+  if(e.target.id==="clientSel"){ S.client=e.target.value; const keep={geo:S.ans.geo, inc:S.ans.inc}; startFrom(S.base); Object.assign(S.ans, keep); render(); return; }
+  if(e.target.dataset.why){ S.why[e.target.dataset.why]=e.target.value; e.target.classList.toggle("miss", !e.target.value); renderStage(); }
+});
 document.addEventListener("keydown", e=>{ const r=e.target.closest("[data-pick]"); if(r&&(e.key===" "||e.key==="Enter")){e.preventDefault(); r.click();} });
+
 // ---------- Sliders: thumb moves freely while dragging, tiles follow the nearest notch live, release snaps to it
-const QK = k => QS.find(q=>q.k===k);
 function range(q){ const b=M(S.base).w; return [avail(q,b,-1)?-2:0, avail(q,b,1)?2:0]; }
 function paintSlider(el, pos, dragging){
   const q=QK(el.dataset.sl), n=Math.round(pos), x=(pos+2)*25;
@@ -532,15 +668,20 @@ function paintSlider(el, pos, dragging){
   if(dragging){
     const r=personalize(M(S.base).w, {...S.ans, [q.k]:n}).moves.find(m=>m.q.k===q.k);
     const tv = (k,d) => `<span class="tv"><i style="background:${AC[IDX[k]].c}"></i>${short(k)} <b class="${d>0?"up":"dn"}">${sgn(d)}</b></span>`;
-    tip.innerHTML = r ? tv(q.to,r.amt)+'<span class="tsep"></span>'+tv(q.from,-r.amt) : '<span class="tcio">CIO VIEW</span>';
+    tip.innerHTML = r ? tv(q.to,r.amt)+'<span class="tsep"></span>'+tv(q.from,-r.amt) : (q.src==="profile"&&n===S.der[q.k] ? '<span class="tcio">CLIENT PROFILE</span>' : '<span class="tcio">CIO VIEW</span>');
     // keep the card inside the rail at the ends; the arrow still points at the thumb
     const w=el.clientWidth, tw=tip.offsetWidth, px=x/100*w, left=Math.max(tw/2-11, Math.min(w-tw/2+11, px));
     tip.style.left=left+"px"; tip.style.setProperty("--ax", (50+(px-left)/tw*100)+"%"); tip.classList.add("show");
   } else tip.classList.remove("show");
 }
-const SHORT = {corp:"Corp IG", muni:"Munis", gov:"Gov", tips:"TIPS", sec:"Securitized", hf:"Hedge Funds", lc:"Large Cap", dm:"Dev. Mkts"};
+const SHORT = {corp:"Corp IG", muni:"Munis", gov:"Gov", tips:"TIPS", sec:"Securitized", hf:"Hedge Funds", lc:"Large Cap", dm:"Dev. Mkts", ei:"Equity Income"};
 const short = k => SHORT[k]||AC[IDX[k]].n;
-function setAnswer(k, n){ if(S.ans[k]!==n){ S.ans[k]=n; renderStage(); } }
+function setAnswer(k, n){
+  if(S.ans[k]===n) return;
+  S.ans[k]=n;
+  if(QK(k).src==="profile"){ if(!isOver(k)) S.why[k]=""; refreshOverride(k); }
+  renderStage();
+}
 let drag=null;
 document.addEventListener("pointerdown", e=>{
   const el=e.target.closest("[data-sl]"); if(!el) return;
@@ -569,8 +710,7 @@ document.addEventListener("keydown", e=>{
   else if(e.key==="Home") n=lo; else if(e.key==="End") n=hi; else return;
   e.preventDefault(); n=Math.max(lo,Math.min(hi,n)); el.classList.add("snap"); paintSlider(el,n,false); setAnswer(q.k,n);
 });
-function clampAnswers(){ const b=M(S.base).w; for(const q of QS){ const n=S.ans[q.k]; if(n && !avail(q,b,n)) S.ans[q.k]=0; } }
-let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,2200); }
+let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.hidden=false; clearTimeout(tt); tt=setTimeout(()=>el.hidden=true,2600); }
 
 render();
 </script>
