@@ -157,8 +157,9 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .dots i.on{background:var(--up)}
 .tstat span{font-size:13px;color:var(--muted)}
 /* connector between base and personalized tiles */
-.tile.pz::before{content:"";position:absolute;left:-10px;top:218px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:var(--bg);border:1.5px solid var(--rule);z-index:2;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2333363b' stroke-width='2'%3E%3Cpath d='M6 3.5L10.5 8 6 12.5'/%3E%3C/svg%3E");background-size:12px;background-repeat:no-repeat;background-position:55% 50%}
+/* arrow sits centered in the 18px gutter: gutter center = -(18/2) - 1.5px border from the tile's padding edge */
+.tile.pz::before{content:"";position:absolute;left:calc(-9px - 1.5px - 7px);top:221px;width:14px;height:14px;z-index:2;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%2333363b' stroke-width='2'%3E%3Cpath d='M5.75 3.5L10.25 8 5.75 12.5'/%3E%3C/svg%3E") center/14px no-repeat}
 @media (max-width:1180px){.tile.pz::before{display:none}}
 .donut{display:flex;justify-content:center;padding:16px 0 18px}
 .donut svg{width:min(100%,220px);height:auto}
