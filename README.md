@@ -29,3 +29,6 @@ The screen is always opened for a specific client, so profile inputs are prefill
 Weights for the three models shown on the production screen come from it. Other models, the client's facts (37% bracket, New York, $3.4M net worth), the eligibility thresholds, the US Equity Income sleeve and all risk statistics are illustrative.
 
 Static site: `index.html` only. Deployed on Vercel.
+
+## Guided demo
+"Guided demo" (top right) runs an 8-step walkthrough over the app: today's screen → Personalize → profile-set tilts → base vs. personalized → a client preference → a one-way input → What changed and the risk check → a 100% bond model. Each step sets the app to a known state, so Back/Next are always consistent. Keys: ← → to step, Esc to exit. Open with `#demo` to start it automatically.

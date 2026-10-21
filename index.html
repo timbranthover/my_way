@@ -4,7 +4,7 @@
 <title>MyWay Allocation</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap">
 <style>
 /* Layout: clone of the proposal tool's Allocation Models modal — fixed left control rail, right compare stage of three tiles, footer actions. Single light look, matching the production screen. */
 :root{
@@ -245,12 +245,72 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .ghd b em{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.6px;padding:2px 5px 0;border-radius:2px;margin-left:7px;vertical-align:1px}
 .ghd b em.p{background:#e6e8ec;color:var(--muted)} .ghd b em.o{background:var(--warn-bg);color:var(--warn)} .ghd b em.c{background:var(--up-bg);color:var(--up)}
 .dots i.on.p{background:var(--fg)} .dots i.on.c{background:var(--up)}
+
+/* ===== Guided demo layer: deliberately its own world (dark ink + amber) so it never reads as part of the product ===== */
+:root{--d-bg:#121419;--d-fg:#F5F2EA;--d-mut:#A9AFBA;--d-acc:#FFB547;--d-acc-ink:#1A1405;--d-line:#2B2F38;--d-scrim:rgba(8,10,14,.62);
+  --d-font:"Manrope","Segoe UI",system-ui,sans-serif;--d-mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+.mhead-r{display:flex;align-items:center;gap:14px}
+.dl-launch{position:relative;display:inline-flex;align-items:center;gap:10px;
+  background:var(--d-bg);color:var(--d-fg);border:0;border-radius:999px;padding:10px 16px 10px 12px;font:600 13.5px/1 var(--d-font);letter-spacing:.2px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(10,12,18,.28),0 0 0 1px rgba(255,255,255,.04) inset;transition:transform .2s ease,box-shadow .2s ease}
+.dl-launch:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(10,12,18,.34)}
+.dl-launch .pl{position:relative;width:22px;height:22px;border-radius:50%;background:var(--d-acc);display:grid;place-items:center}
+.dl-launch .pl svg{width:9px;height:9px;margin-left:2px}
+.dl-launch .pl::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 0 rgba(255,181,71,.55);animation:dlping 2.4s ease-out infinite}
+@keyframes dlping{0%{box-shadow:0 0 0 0 rgba(255,181,71,.5)}70%,100%{box-shadow:0 0 0 12px rgba(255,181,71,0)}}
+.dl-root{position:fixed;inset:0;z-index:70;font-family:var(--d-font)}
+.dl-block{position:absolute;inset:0;background:transparent;transition:background .35s ease}
+.dl-root.nospot .dl-block{background:var(--d-scrim)}
+.dl-spot{position:fixed;border-radius:8px;pointer-events:none;box-shadow:0 0 0 9999px var(--d-scrim);
+  transition:top .5s cubic-bezier(.2,.8,.2,1),left .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1),opacity .3s ease}
+.dl-spot::after{content:"";position:absolute;inset:-2px;border-radius:10px;border:2px solid var(--d-acc);animation:dlglow 2.2s ease-in-out infinite}
+@keyframes dlglow{0%,100%{box-shadow:0 0 0 0 rgba(255,181,71,.0)}50%{box-shadow:0 0 0 6px rgba(255,181,71,.18)}}
+.dl-root.nospot .dl-spot{opacity:0}
+.dl-card{position:fixed;width:344px;max-width:calc(100vw - 32px);background:var(--d-bg);color:var(--d-fg);border-radius:12px;padding:18px 20px 16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06) inset;
+  transition:top .5s cubic-bezier(.2,.8,.2,1),left .5s cubic-bezier(.2,.8,.2,1)}
+.dl-card.in .dl-body{animation:dlin .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes dlin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.dl-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.dl-step{font:600 11px/1 var(--d-mono);letter-spacing:1.2px;color:var(--d-acc);text-transform:uppercase}
+.dl-x{background:none;border:0;color:var(--d-mut);cursor:pointer;padding:4px;margin:-4px -6px -4px 0;line-height:0;border-radius:6px}
+.dl-x:hover{color:var(--d-fg);background:rgba(255,255,255,.06)}
+.dl-x svg{width:16px;height:16px}
+.dl-prog{display:flex;gap:4px;margin-bottom:14px}
+.dl-prog i{flex:1;height:3px;border-radius:2px;background:var(--d-line);overflow:hidden;position:relative}
+.dl-prog i::after{content:"";position:absolute;inset:0;background:var(--d-acc);transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.dl-prog i.on::after{transform:scaleX(1)}
+.dl-title{font-size:19px;font-weight:800;letter-spacing:-.2px;line-height:1.2;margin:0 0 6px;text-wrap:balance}
+.dl-text{font-size:14px;line-height:1.5;color:var(--d-mut);margin:0}
+.dl-text b{color:var(--d-fg);font-weight:700}
+.dl-list{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.dl-list li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4;color:var(--d-fg)}
+.dl-list li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--d-acc);margin-top:7px}
+.dl-foot{display:flex;align-items:center;justify-content:space-between;margin-top:18px;gap:10px}
+.dl-keys{font:500 11px/1 var(--d-mono);color:#6E7480;letter-spacing:.3px}
+.dl-btns{display:flex;gap:8px}
+.dl-b{border:0;border-radius:8px;padding:9px 14px 8px;font:700 13px/1 var(--d-font);cursor:pointer;transition:background .15s ease,transform .15s ease}
+.dl-b.ghost{background:transparent;color:var(--d-mut);box-shadow:inset 0 0 0 1px var(--d-line)}
+.dl-b.ghost:hover{color:var(--d-fg);box-shadow:inset 0 0 0 1px #454a55}
+.dl-b.ghost:disabled{opacity:.35;cursor:default}
+.dl-b.go{background:var(--d-acc);color:var(--d-acc-ink)}
+.dl-b.go:hover{background:#FFC46B}
+.dl-b.go:active{transform:scale(.97)}
+.dl-b:focus-visible,.dl-x:focus-visible,.dl-launch:focus-visible{outline:2px solid var(--d-acc);outline-offset:2px}
+.dl-card.end{width:420px}
+.dl-card.end .dl-title{font-size:22px}
+.dl-press{animation:dlpress .45s ease}
+@keyframes dlpress{0%{transform:scale(1)}40%{transform:scale(.96);box-shadow:0 0 0 6px rgba(255,181,71,.35)}100%{transform:scale(1)}}
+@media (max-width:860px){.dl-card{left:16px!important;right:16px;width:auto;top:auto!important;bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
+@media (prefers-reduced-motion:reduce){.dl-spot,.dl-card{transition:none}.dl-spot::after,.dl-launch .pl::after{animation:none}.dl-card.in .dl-body{animation:none}}
 </style>
 
 <div class="modal">
   <div class="mhead">
     <h1>Allocation Models</h1>
+    <div class="mhead-r"><button class="dl-launch" id="dlLaunch" aria-label="Start guided demo"><span class="pl"><svg viewBox="0 0 10 10"><path d="M1 0.8L9 5 1 9.2Z" fill="#1A1405"/></svg></span>Guided demo</button>
     <button class="xbtn" aria-label="Close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
+    </div>
   </div>
   <div class="subrule"></div>
 
@@ -725,5 +785,147 @@ let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.hidden
 
 render();
 </script>
+
+
+<div class="dl-root" id="dl" hidden role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+  <div class="dl-block"></div>
+  <div class="dl-spot" id="dlSpot"></div>
+  <div class="dl-card" id="dlCard">
+    <div class="dl-top"><span class="dl-step" id="dlStep"></span><button class="dl-x" id="dlX" aria-label="Exit demo"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg></button></div>
+    <div class="dl-prog" id="dlProg"></div>
+    <div class="dl-body"><h3 class="dl-title" id="dlTitle"></h3><div id="dlText"></div></div>
+    <div class="dl-foot"><span class="dl-keys" id="dlKeys">← → to step · Esc</span><div class="dl-btns"><button class="dl-b ghost" id="dlBack">Back</button><button class="dl-b go" id="dlNext">Next</button></div></div>
+  </div>
+</div>
+
+<script>
+// ---------- Guided demo. Each step sets the app to a known state, so Back and Next are always consistent.
+(function(){
+  const $$ = s => [...document.querySelectorAll(s)];
+  const q1 = s => document.querySelector(s);
+  const qBlock = k => { const el=q1(`[data-sl="${k}"]`); return el ? el.closest(".q") : null; };
+  function reset(){ CLIENT.netWorth=3.4e6; S.picked=["m1","m2","m6"]; S.open={saa:true,uhnw:true,inst:true}; S.started=false; S.method="cio";
+    S.base="m6"; S.ans={tax:0,alt:0,geo:0,inc:0}; S.der={tax:0,alt:0}; document.getElementById("sa-cio").checked=true; }
+  function pz(id, extra){ reset(); startFrom(id); S.started=true; S.method="pz"; Object.assign(S.ans, extra||{}); render(); }
+  function cio(){ reset(); render(); }
+  let tok=0;
+  function slide(k, to, my){ return new Promise(res=>{
+    const el=q1(`[data-sl="${k}"]`); if(!el) return res();
+    const from=S.ans[k], t0=performance.now(), D=1000;
+    el.classList.remove("snap"); el.classList.add("drag");
+    const step=t=>{ if(my!==tok) return res();
+      const p=Math.min(1,(t-t0)/D), e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2, pos=from+(to-from)*e;
+      paintSlider(el,pos,true); setAnswer(k,Math.round(pos));
+      if(p<1) requestAnimationFrame(step);
+      else setTimeout(()=>{ if(my!==tok) return res(); el.classList.remove("drag"); el.classList.add("snap"); paintSlider(el,to,false); setAnswer(k,to); res(); }, 700);
+    };
+    setTimeout(()=>requestAnimationFrame(step), 450);
+  }); }
+
+  const STEPS = [
+    { t:"Today's screen", x:"The proposal tool's <b>Allocation Models</b> screen. The advisor compares CIO models for this Conservative client.",
+      set:cio, at:()=>[q1(".tiles")] },
+    { t:"One new button", x:"<b>Personalize</b> starts from the CIO model the advisor already picked. Nothing else on the screen changes.",
+      set:cio, at:()=>[q1('[data-pz="m6"]')], next:()=>{ const b=q1('[data-pz="m6"]'); if(b){ b.classList.add("dl-press"); } return 380; } },
+    { t:"Facts set the start", x:"Tax bracket and net worth are already on file. They set two tilts on their own: <b>munis in</b>, <b>alternatives halved</b>.",
+      set:()=>pz("m6"), at:()=>{ const r=$$("#railBody .rsec")[0], qs=$$("#railBody .q.prof"); return [r, ...qs]; } },
+    { t:"CIO base, then tailored", x:"Same risk tolerance, same CIO model underneath. Only the mix inside it moves.",
+      set:()=>pz("m6"), at:()=>[q1(".tiles>.tile:nth-child(1)"), q1(".tiles>.tile:nth-child(2)")] },
+    { t:"The client's call", x:"Preferences are equal-risk swaps. Leaning global moves <b>1%</b> from US large cap to international.",
+      set:()=>pz("m6"), at:()=>[qBlock("geo")], run:my=>slide("geo",1,my) },
+    { t:"Only real options", x:"Income can only lean one way: this model is <b>all total return</b> today. There's nothing past CIO to drag to.",
+      set:()=>pz("m6",{geo:1}), at:()=>[qBlock("inc")], run:my=>slide("inc",2,my) },
+    { t:"Every change traced", x:"Each tilt is tagged by source and checked against CIO's risk guardrail before it can be applied.",
+      set:()=>pz("m6",{geo:1,inc:2}), at:()=>[q1(".tiles>.tile:nth-child(3)")] },
+    { t:"Works on every model", x:"On a 100% bond model, the stock inputs simply drop away. Taxes still applies.",
+      set:()=>pz("m5"), at:()=>[q1("#railBody")] },
+    { end:true, t:"MyWay personalization", list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
+      set:()=>pz("m6",{geo:1,inc:2}), at:()=>[] },
+  ];
+
+  const root=q1("#dl"), spot=q1("#dlSpot"), card=q1("#dlCard"), launch=q1("#dlLaunch");
+  q1("#dlProg").innerHTML = STEPS.filter(s=>!s.end).map(()=>"<i></i>").join("");
+  let cur=-1, loop=0;
+
+  function union(els){
+    els=els.filter(Boolean); if(!els.length) return null;
+    const rs=els.map(e=>e.getBoundingClientRect());
+    const l=Math.min(...rs.map(r=>r.left)), t=Math.min(...rs.map(r=>r.top)), r=Math.max(...rs.map(r=>r.right)), b=Math.max(...rs.map(r=>r.bottom));
+    return {left:l, top:t, width:r-l, height:b-t, right:r, bottom:b};
+  }
+  function ensureVisible(els){
+    const u=union(els); if(!u) return;
+    const vh=innerHeight, pad=70;
+    if(u.top<pad || u.bottom>vh-pad){
+      const target = u.height > vh-2*pad ? u.top-pad : u.top - (vh-u.height)/2;
+      scrollTo({top: Math.max(0, scrollY + target), behavior:"auto"});
+    }
+  }
+  function place(){
+    const st=STEPS[cur]; if(!st) return;
+    const u=union(st.at()); const P=10, vw=innerWidth, vh=innerHeight;
+    root.classList.toggle("nospot", !u);
+    const cw=card.offsetWidth, ch=card.offsetHeight;
+    if(!u){ card.style.left=Math.round((vw-cw)/2)+"px"; card.style.top=Math.round((vh-ch)/2)+"px"; return; }
+    const r={left:u.left-P, top:u.top-P, width:u.width+2*P, height:u.height+2*P};
+    Object.assign(spot.style,{left:r.left+"px", top:r.top+"px", width:r.width+"px", height:r.height+"px"});
+    const g=20, right=r.left+r.width;
+    let x, y;
+    if(vw-right >= cw+g+12) x=right+g;
+    else if(r.left >= cw+g+12) x=r.left-g-cw;
+    else { x=Math.min(Math.max(12, r.left), vw-cw-12); y = (vh-(r.top+r.height) >= ch+g) ? r.top+r.height+g : Math.max(12, r.top-g-ch); }
+    if(y===undefined) y=Math.min(Math.max(12, r.top), vh-ch-12);
+    card.style.left=Math.round(x)+"px"; card.style.top=Math.round(y)+"px";
+  }
+  function tick(){ place(); loop=requestAnimationFrame(tick); }
+
+  async function go(i){
+    const my=++tok; cur=i; const st=STEPS[i];
+    st.set();
+    const n=STEPS.filter(s=>!s.end).length;
+    q1("#dlStep").textContent = st.end ? "Demo complete" : `Step ${i+1} of ${n}`;
+    $$("#dlProg i").forEach((el,k)=>el.classList.toggle("on", k<=i));
+    q1("#dlTitle").textContent = st.t;
+    q1("#dlText").innerHTML = st.list ? `<ul class="dl-list">${st.list.map(x=>`<li>${x}</li>`).join("")}</ul>` : `<p class="dl-text">${st.x}</p>`;
+    card.classList.toggle("end", !!st.end);
+    q1("#dlBack").disabled = i===0;
+    q1("#dlBack").textContent = st.end ? "Restart" : "Back";
+    q1("#dlBack").disabled = i===0 && !st.end;
+    q1("#dlNext").textContent = st.end ? "Explore on your own" : i===STEPS.length-2 ? "Finish" : "Next";
+    q1("#dlKeys").hidden = !!st.end;
+    card.classList.remove("in"); void card.offsetWidth; card.classList.add("in");
+    ensureVisible(st.at());
+    if(st.run){ await st.run(my); }
+  }
+  function start(){
+    if(document.activeElement) document.activeElement.blur();
+    root.hidden=false; launch.style.visibility='hidden'; cancelAnimationFrame(loop); loop=requestAnimationFrame(tick);
+    spot.style.transition="none"; go(0); place(); void spot.offsetWidth; spot.style.transition="";
+    q1("#dlNext").focus({preventScroll:true});
+  }
+  function stop(){ tok++; root.hidden=true; launch.style.visibility=''; cancelAnimationFrame(loop); cur=-1;
+    $$(".dl-press").forEach(e=>e.classList.remove("dl-press")); }
+  function next(){
+    const st=STEPS[cur]; if(!st) return;
+    if(st.end){ stop(); return; }
+    const wait = st.next ? st.next() : 0;
+    setTimeout(()=>go(cur+1), wait||0);
+  }
+  function back(){ const st=STEPS[cur]; if(st && st.end){ go(0); return; } if(cur>0) go(cur-1); }
+
+  launch.addEventListener("click", start);
+  q1("#dlNext").addEventListener("click", next);
+  q1("#dlBack").addEventListener("click", back);
+  q1("#dlX").addEventListener("click", stop);
+  addEventListener("keydown", e=>{
+    if(root.hidden) return;
+    if(e.key==="Escape"){ e.preventDefault(); stop(); }
+    else if(e.key==="ArrowRight"){ e.preventDefault(); e.stopPropagation(); next(); }
+    else if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopPropagation(); back(); }
+  }, true);
+  if(location.hash==="#demo") setTimeout(start, 300);
+})();
+</script>
+
 
 </html>
