@@ -95,7 +95,6 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .sl{position:relative;height:30px;margin:0 11px;cursor:pointer;touch-action:none;outline:none}
 .sl:focus-visible .thumb{outline:2px solid #2a6fd6;outline-offset:2px}
 .sl .tr{position:absolute;left:0;right:0;top:13px;height:4px;border-radius:2px;background:var(--track)}
-.sl .hatch{position:absolute;width:50%;top:12px;height:6px;border-radius:2px;background:repeating-linear-gradient(135deg,#d9dce2 0 2px,#f4f5f7 2px 5px)}
 .sl .sfill{position:absolute;top:13px;height:4px;border-radius:2px}
 .sl .tick{position:absolute;top:9px;width:2px;height:12px;margin-left:-1px;background:#c4c8cf;border-radius:1px}
 .sl .tick.mid{top:7px;height:16px;background:var(--rule)}
@@ -223,13 +222,26 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .q.prof + .rsec,.q + .rsec{margin-top:18px}
 .fact{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin:3px 0 10px}
 .fact svg{width:15px;height:15px;flex:none;color:var(--faint)}
-.sl .pmark{position:absolute;top:26px;width:0;height:0;margin-left:-4px;border:4px solid transparent;border-top:0;border-bottom:5px solid var(--fg);z-index:1}
+/* where the client profile put this input; shown only once the advisor has moved off it */
+.sl .ghost{position:absolute;top:8px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:var(--bg);border:2px solid #9aa0a8;box-shadow:inset 0 0 0 2px var(--bg),inset 0 0 0 6px #d3d6db;z-index:1;pointer-events:none}
+.cioend{color:var(--muted)} .cioend b{font-weight:700;color:var(--fg);letter-spacing:.3px}
+.qstate{display:inline-flex;align-items:baseline;gap:6px}
+.pchip{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:2px 5px 0;border-radius:2px;line-height:1.5}
+.pchip.p{background:#e6e8ec;color:var(--muted)} .pchip.a{background:var(--warn-bg);color:var(--warn)}
+.q.dead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:11px 0}
+.q.dead .qtitle{color:var(--faint)}
+.q.dead .na,.grp.dead .na{font-size:12.5px;color:var(--faint)}
+.grp.dead{gap:0}
+.grp.dead .na{height:46px;display:flex;align-items:center}
+.grp.dead .ghd b{color:var(--faint)}
+.dots i.na{background:transparent;box-shadow:inset 0 0 0 1px #c9cdd4}
+.seg .lk{width:12px;height:12px;margin:-2px 5px 0 0;vertical-align:middle}
 .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--rule);border-radius:2px;overflow:hidden}
 .seg button{position:relative;border:0;border-left:1px solid var(--line);background:var(--bg);padding:7px 0 5px;font-size:13px;cursor:pointer}
 .seg button:first-child{border-left:0}
 .seg button[aria-checked="true"]{background:var(--fg);color:var(--bg);font-weight:600}
 .seg button:disabled{color:#b3b7be;cursor:not-allowed;background:repeating-linear-gradient(135deg,#eef0f3 0 2px,#f8f9fa 2px 5px)}
-.seg button.der::after{content:"";position:absolute;left:50%;bottom:2px;margin-left:-4px;border:4px solid transparent;border-top:0;border-bottom:4px solid currentColor;opacity:.75}
+.seg button.der::after{content:"";position:absolute;left:50%;bottom:3px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;border:1.5px solid #9aa0a8;background:#d3d6db;box-sizing:border-box}
 .ghd b em{font-style:normal;font-size:9.5px;font-weight:700;letter-spacing:.6px;padding:2px 5px 0;border-radius:2px;margin-left:7px;vertical-align:1px}
 .ghd b em.p{background:#e6e8ec;color:var(--muted)} .ghd b em.o{background:var(--warn-bg);color:var(--warn)} .ghd b em.c{background:var(--up-bg);color:var(--up)}
 .dots i.on.p{background:var(--fg)} .dots i.on.c{background:var(--up)}
@@ -401,6 +413,16 @@ function quad(x){let s=0;for(let i=0;i<x.length;i++)for(let j=0;j<x.length;j++)s
 const vol = w => Math.sqrt(quad(w.map(x=>x/100)));
 const te  = (a,b) => Math.sqrt(quad(a.map((x,i)=>(x-b[i])/100)));
 function avail(q, base, n){ if(!n) return true; if(q.kind!=="pair") return true; return n>0 ? base[IDX[q.from]]>0 : base[IDX[q.to]]>0; }
+// The notches a pair input can actually reach in this model. A direction is impossible when the model holds none of what it would sell.
+function rangeOf(q, b){ return [avail(q,b,-1)?-2:0, avail(q,b,1)?2:0]; }
+// Why an input can't be used at all in this model ("" if it can).
+function deadReason(q, b){
+  if(q.kind==="gate") return b[IDX.hf]===0 ? "No alternatives in this model" : "";
+  const [lo,hi] = rangeOf(q,b); if(lo!==hi) return "";
+  return (q.k==="geo"||q.k==="inc") ? "No stocks in this model" : "No bonds in this model";
+}
+// Label for an end of the track the model is already sitting at.
+const AT_END = {muni:"no munis held", corp:"no corporates held", ei:"total return", dm:"no international held", lc:"no large cap held"};
 
 // ---------- State
 const S = { method:"cio", picked:["m1","m2","m6"], open:{saa:true,uhnw:true,inst:true}, base:"m6",
@@ -484,26 +506,39 @@ function railCIO(){
       }).join("")}</div>
     </div>`).join("");
 }
+const xOf = (v,lo,hi) => (v-lo)/(hi-lo)*100;
 function sliderHTML(q, base){
-  const n=S.ans[q.k];
-  return `<div class="sl" data-sl="${q.k}" role="slider" tabindex="0" aria-label="${q.t}" aria-valuemin="-2" aria-valuemax="2" aria-valuenow="${n}" aria-valuetext="${q.lv[n+2]}">
+  const n=S.ans[q.k], [lo,hi]=rangeOf(q,base);
+  const pole = (side) => {
+    const open = side==="L" ? lo<0 : hi>0;
+    if(open) return `<span>${side==="L"?q.L:q.Rt}</span>`;
+    return `<span class="cioend"><b>CIO</b> · ${AT_END[side==="L"?q.to:q.from]}</span>`;
+  };
+  const ticks=[]; for(let v=lo; v<=hi; v++) ticks.push(`<div class="tick${v===0?" mid":""}" style="left:${xOf(v,lo,hi)}%"></div>`);
+  return `<div class="sl${lo===0||hi===0?" oneway":""}" data-sl="${q.k}" role="slider" tabindex="0" aria-label="${q.t}" aria-valuemin="${lo}" aria-valuemax="${hi}" aria-valuenow="${n}" aria-valuetext="${q.lv[n+2]}">
       <div class="tr"></div>
-      ${avail(q,base,-1)?"":`<div class="hatch" style="left:0"></div>`}${avail(q,base,1)?"":`<div class="hatch" style="left:50%"></div>`}
       <div class="sfill"></div>
-      ${[-2,-1,0,1,2].map(v=>`<div class="tick${v===0?" mid":""}" style="left:${(v+2)*25}%"></div>`).join("")}
-      ${q.src==="profile"?`<div class="pmark" style="left:${(S.der[q.k]+2)*25}%" title="Client profile"></div>`:""}
+      ${ticks.join("")}
+      ${q.src==="profile"?`<div class="ghost" style="left:${xOf(S.der[q.k],lo,hi)}%" hidden></div>`:""}
       <div class="thumb"></div>
       <div class="tip" aria-hidden="true"></div>
     </div>
-    <div class="poles"><span>${q.L}</span><span>${q.Rt}</span></div>`;
+    <div class="poles">${pole("L")}${pole("R")}</div>`;
 }
+const LOCK = '<svg class="lk" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="7" width="9" height="6.5" rx="1"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2"/></svg>';
 function gateHTML(q, base, c){
-  const none = base[IDX.hf]===0;
+  const locked = v => eligibility(c)==="Not accredited" && v<2;
   return `<div class="seg" role="radiogroup" aria-label="${q.t}">${q.opts.map((o,v)=>{
-      const dis = none ? v!==0 : (eligibility(c)==="Not accredited" && v<2);
-      return `<button role="radio" data-gate="${q.k}" data-v="${v}" aria-checked="${S.ans[q.k]===v}" ${dis?"disabled":""} class="${S.der[q.k]===v&&!none?"der":""}">${none&&v===0?"Not in model":o}</button>`;
+      const cls = [isAdj(q.k)&&S.der[q.k]===v?"der":""].join(" ");
+      return `<button role="radio" data-gate="${q.k}" data-v="${v}" aria-checked="${S.ans[q.k]===v}" ${locked(v)?`disabled aria-label="${o}, requires accredited investor"`:""} class="${cls}">${locked(v)?LOCK:""}${o}</button>`;
     }).join("")}</div>`;
 }
+function stateHTML(q){
+  const n=S.ans[q.k], txt = q.kind==="gate" ? q.lv[n] : q.lv[n+2];
+  const chip = q.src==="profile" ? `<em class="pchip ${isAdj(q.k)?"a":"p"}" data-pc="${q.k}">${isAdj(q.k)?"Adjusted":"Profile"}</em>` : "";
+  return `<span class="qstate"><span data-qs="${q.k}">${txt}</span>${chip}</span>`;
+}
+function deadHTML(q, why){ return `<div class="q dead"><div class="qtop"><span class="qtitle">${q.t}</span></div><div class="na">${why}</div></div>`; }
 function railPZ(){
   const base = M(S.base).w, c = CLIENT;
   return `
@@ -512,17 +547,19 @@ function railPZ(){
       <span class="basenm">${esc(M(S.base).n)}</span>
     </div>
     <div class="rsec"><b>From client profile</b></div>
-    ${PROFILE.map(q=>`<div class="q prof">
-        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate" data-qs="${q.k}">${q.kind==="gate"?q.lv[S.ans[q.k]]:q.lv[S.ans[q.k]+2]}</span></div>
+    ${PROFILE.map(q=>{ const why=deadReason(q,base); if(why) return deadHTML(q,why);
+      return `<div class="q prof">
+        <div class="qtop"><span class="qtitle">${q.t}</span>${stateHTML(q)}</div>
         <div class="fact">${REC}<span>${factLine(q,c)}</span></div>
         ${q.kind==="gate"?gateHTML(q,base,c):sliderHTML(q,base)}
-      </div>`).join("")}
+      </div>`;}).join("")}
     <div class="rsec"><b>Client preferences</b></div>
-    ${PREFS.map(q=>`<div class="q">
-        <div class="qtop"><span class="qtitle">${q.t}</span><span class="qstate" data-qs="${q.k}">${q.lv[S.ans[q.k]+2]}</span></div>
+    ${PREFS.map(q=>{ const why=deadReason(q,base); if(why) return deadHTML(q,why);
+      return `<div class="q">
+        <div class="qtop"><span class="qtitle">${q.t}</span>${stateHTML(q)}</div>
         <div class="qtext">${q.q}</div>
         ${sliderHTML(q,base)}
-      </div>`).join("")}
+      </div>`;}).join("")}
     <button class="reset" id="resetAns">Reset to client profile</button>`;
 }
 
@@ -545,6 +582,7 @@ function changeTile(base, res){
       rows = bar("Hedge Funds", -amt, AC[IDX.hf].c) + bar("Rest of portfolio", amt, "#9aa1ab"); }
     else { const m=mv(q.k), amt=m?m.amt:0;
       rows = bar(AC[IDX[q.to]].n, amt, AC[IDX[q.to]].c) + bar(AC[IDX[q.from]].n, -amt, AC[IDX[q.from]].c); }
+    if(deadReason(q,base)) return `<div class="grp dead"><div class="ghd"><b>${q.t}</b></div><div class="na">Not in this model</div></div>`;
     return `<div class="grp${on?" on":""}"><div class="ghd"><b>${q.t}${srcChip(q)}</b><span>${state}</span></div>${rows}</div>`; }).join("")}</div>`;
   return `<div class="tile">
     <div class="ch-h">What changed</div>
@@ -590,7 +628,7 @@ function renderStage(){
       <div class="tile pz">
         <div class="ttag pz"><span>Personalized</span></div>
         <div class="tkind">Personalized Allocation</div>
-        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${active.includes(q)?"on "+(q.src==="profile"?"p":"c"):""}" title="${q.t}"></i>`).join("")}</div><span>${status}</span></div>
+        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${deadReason(q,m.w)?"na":active.includes(q)?"on "+(q.src==="profile"?"p":"c"):""}" title="${q.t}${deadReason(q,m.w)?": not in this model":""}"></i>`).join("")}</div><span>${status}</span></div>
         <div class="donut" data-donut="pz"></div>
         ${legend(res.w, m.w, pzRows(m.w), changed)}
       </div>` + changeTile(m.w, res);
@@ -622,17 +660,22 @@ document.addEventListener("click", e=>{
 document.addEventListener("keydown", e=>{ const r=e.target.closest("[data-pick]"); if(r&&(e.key===" "||e.key==="Enter")){e.preventDefault(); r.click();} });
 
 // ---------- Sliders: thumb moves freely while dragging, tiles follow the nearest notch live, release snaps to it
-function range(q){ const b=M(S.base).w; return [avail(q,b,-1)?-2:0, avail(q,b,1)?2:0]; }
+function range(q){ return rangeOf(q, M(S.base).w); }
 function paintSlider(el, pos, dragging){
-  const q=QK(el.dataset.sl), n=Math.round(pos), x=(pos+2)*25;
+  const q=QK(el.dataset.sl), [rlo,rhi]=range(q), n=Math.round(pos), x=xOf(pos,rlo,rhi), c0=xOf(0,rlo,rhi);
   const fill=el.querySelector(".sfill"), thumb=el.querySelector(".thumb");
   thumb.style.left = x+"%";
   thumb.classList.toggle("cio", n===0 && !dragging);
-  const lo=Math.min(50,x), hi=Math.max(50,x);
+  const lo=Math.min(c0,x), hi=Math.max(c0,x);
   fill.style.left = lo+"%"; fill.style.width = (hi-lo)+"%";
   fill.style.background = AC[IDX[pos>0?q.to:q.from]].c;
   el.setAttribute("aria-valuenow", n); el.setAttribute("aria-valuetext", q.lv[n+2]);
   const st=document.querySelector(`[data-qs="${q.k}"]`); if(st) st.textContent=q.lv[n+2];
+  if(q.src==="profile"){
+    const adj = n!==S.der[q.k], pc=document.querySelector(`[data-pc="${q.k}"]`), g=el.querySelector(".ghost");
+    if(pc){ pc.textContent = adj?"Adjusted":"Profile"; pc.className = "pchip "+(adj?"a":"p"); }
+    if(g) g.hidden = !adj;
+  }
   const tip=el.querySelector(".tip");
   if(dragging){
     const r=personalize(M(S.base).w, {...S.ans, [q.k]:n}).moves.find(m=>m.q.k===q.k);
@@ -661,7 +704,7 @@ document.addEventListener("pointerdown", e=>{
 function moveDrag(e){
   if(!drag) return;
   const {el,q,lo,hi,rect}=drag;
-  const pos=Math.max(lo,Math.min(hi,((e.clientX-rect.left)/rect.width)*4-2));
+  const pos=Math.max(lo,Math.min(hi, lo + ((e.clientX-rect.left)/rect.width)*(hi-lo)));
   drag.pos=pos; paintSlider(el,pos,true); setAnswer(q.k, Math.round(pos));
 }
 document.addEventListener("pointermove", moveDrag);

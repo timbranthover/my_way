@@ -14,6 +14,12 @@ Clickable prototype of personalizing a CIO strategic asset allocation (SAA) insi
 
 The screen is always opened for a specific client, so profile inputs are prefilled from that client's facts on file. The advisor can adjust them; a marker shows the profile setting, and What changed tags the input as Adjusted.
 
+## Controls only show what is possible
+- Two-way input: CIO in the center, 5 notches.
+- One-way input (the model holds none of what one direction would sell): CIO sits at that end, labeled with why (e.g. "CIO · no munis held", "CIO · total return"), 3 notches toward the possible side.
+- Impossible input: collapses to one line ("No stocks in this model", "No alternatives in this model").
+- Profile inputs show a Profile chip; once moved, an Adjusted chip and a ring marking the profile setting. Options the client is not eligible for are locked.
+
 ## Math
 - Each notch moves 15% of the CIO source sleeve; amounts snap to CIO's 0.5% grid; weights always sum to 100%.
 - Geography and Income both draw on Large Cap; each is capped at 30% of the CIO sleeve, so weights never go negative.
