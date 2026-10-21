@@ -35,3 +35,6 @@ Static site: `index.html` only. Deployed on Vercel.
 
 ## Branding
 The feature is branded **MyWay**: the screen's own typeface, bold, in one brand green (#0E7A57; #46C79A on dark surfaces). A small "tuned line" symbol follows the word (three lines, the middle one adjusted with a dot: the sliders, distilled). No badge or brackets. It appears on the Personalize button, the personalization screen title, the personalized tile's tag, the Apply confirmation and the demo's closing card. The CIO base tile, What changed and the sliders stay unbranded so they read as CIO governance.
+
+## Proposal PDF
+While personalizing, **Proposal PDF** (footer) opens a preview of a 3-page US Letter proposal: (1) CIO model vs. MyWay allocation with a full asset-class table, (2) why the allocation differs, risk check and next steps, (3) important information. **Download PDF** uses the browser's print engine, so text stays vector and crisp; choose "Save as PDF" as the destination. No performance (past, projected or hypothetical) is shown, which keeps the document clear of SEC Marketing Rule hypothetical-performance conditions; risk estimates carry methodology and limitation language in the spirit of FINRA Rule 2214. All disclosures are sample placeholders; final language must come from Compliance. Every page is marked "Sample".
