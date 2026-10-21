@@ -306,10 +306,15 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 
 /* MyWay wordmark: the screen's own typeface, bold, one brand colour. Lighter green on dark surfaces. */
 :root{--mw:#0E7A57;--mw-on-dark:#46C79A}
-.mw{font-weight:700;color:var(--mw);letter-spacing:-.005em;white-space:nowrap;text-transform:none}
+.mw{display:inline-flex;align-items:center;gap:.3em;font-weight:700;color:var(--mw);letter-spacing:-.005em;white-space:nowrap;text-transform:none;line-height:1}
+/* tuned-line symbol: sits after the word, sized to the cap height, nudged to the optical center of the letters */
+.mwi{width:.78em;height:.78em;flex:none;transform:translateY(-.04em);shape-rendering:geometricPrecision}
+.mwi .f{opacity:.42}
+.tlink .mwi .f,.ttag .mwi .f,.dmw .mwi .f{opacity:.55}
+.ttag .mwi{width:.92em;height:.92em}
 .ttl-sep{display:inline-block;width:1px;height:.8em;background:var(--line);margin:0 12px;vertical-align:-1px}
 .ttag.pz > span{text-transform:none;letter-spacing:.1px;font-size:12px;padding:2px 9px 0;line-height:1.35}
-.ttag.pz span.mw{color:var(--mw-on-dark);text-transform:none;padding:0;border:0;background:none;font-size:inherit;letter-spacing:.1px;border-radius:0;font-weight:700}
+.ttag.pz span.mw{display:inline-flex;align-items:center;gap:.3em;color:var(--mw-on-dark);text-transform:none;padding:0;border:0;background:none;font-size:inherit;letter-spacing:.1px;border-radius:0;font-weight:700}
 .tlink .tmw{display:inline-flex;align-items:center;padding-left:10px;margin-left:2px;border-left:1px solid rgba(255,255,255,.22);font-size:13.5px;letter-spacing:0}
 .tlink .tmw .mw{color:var(--mw-on-dark)}
 .dmw{color:var(--mw-on-dark)}
@@ -513,7 +518,8 @@ const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 const X = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg>';
 const CHEV = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5-5 5 5"/></svg>';
 const TICK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
-const MW = '<span class="mw">MyWay</span>';
+const MW_ICON = '<svg class="mwi" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path class="f" d="M4 5.5h16"/><path d="M4 12h9.5"/><circle cx="17.5" cy="12" r="2.9" fill="currentColor" stroke="none"/><path class="f" d="M4 18.5h16"/></svg>';
+const MW = '<span class="mw">MyWay'+MW_ICON+'</span>';
 const REC = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1.6"/><path d="M3.8 11c.4-1.2 1.2-1.8 2.2-1.8s1.8.6 2.2 1.8M9.5 6.5h3M9.5 9h2"/></svg>';
 
 // ---------- Donut (SVG, counter-clockwise from 3 o'clock, tweened)
@@ -562,7 +568,7 @@ function modelTile(m, opts={}){
     ${opts.tag?`<div class="ttag"><span>${opts.tag}</span></div>`:""}<div class="tkind">${kind}</div><div class="tname">${esc(m.n)}</div>
     <div class="donut" data-donut="cio-${m.id}"></div>
     ${legend(m.w)}
-    ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg><span>${m.id===S.base&&S.started?"Edit personalization":"Personalize"}</span><span class="tmw">${MW}</span></button>`:""}
+    ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><span>${m.id===S.base&&S.started?"Edit personalization":"Personalize"}</span><span class="tmw">${MW}</span></button>`:""}
   </div>`;
 }
 
@@ -850,7 +856,7 @@ render();
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[q1(".tiles>.tile:nth-child(3)")] },
     { t:"Works on every model", x:"On a 100% bond model, the stock inputs simply drop away. Taxes still applies.",
       set:()=>pz("m5"), at:()=>[q1("#railBody")] },
-    { end:true, t:'<span class="dmw">MyWay</span> personalization', list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
+    { end:true, t:'<span class="mw dmw">MyWay'+MW_ICON+'</span> personalization', list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[] },
   ];
 
