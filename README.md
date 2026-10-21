@@ -38,3 +38,13 @@ The feature is branded **MyWay**: the screen's own typeface, bold, in one brand 
 
 ## Proposal PDF
 While personalizing, **Proposal PDF** (footer) opens a preview of a 3-page US Letter proposal: (1) CIO model vs. MyWay allocation with a full asset-class table, (2) why the allocation differs, risk check and next steps, (3) important information. **Download PDF** uses the browser's print engine, so text stays vector and crisp; choose "Save as PDF" as the destination. No performance (past, projected or hypothetical) is shown, which keeps the document clear of SEC Marketing Rule hypothetical-performance conditions; risk estimates carry methodology and limitation language in the spirit of FINRA Rule 2214. The header carries the UBS logo (`brand/ubs-logo.svg`, inlined into the page). All disclosures are sample placeholders; final language must come from Compliance. Every page is marked "Sample".
+
+### Exhibits
+The proposal preview has an **Exhibits** side panel. Core pages and disclosures are always included; each exhibit adds itself on new pages before the disclosures, with automatic pagination and page numbers:
+- **Note from your advisor**: a short personal message (up to 600 characters).
+- **Mix at a glance**: cash / fixed income / equities / alternatives, CIO vs. client.
+- **Where your stocks are invested**: US vs. developed international and by size, as shares of the stock portion.
+- **Tax-exempt income**: municipal share of bonds and the tax-equivalent factor at the client's federal bracket.
+- **Liquidity**: generally tradable vs. limited-liquidity (hedge funds).
+- **Glossary**: plain-language terms used in the proposal.
+An exhibit that doesn't apply to the chosen model (no stocks, no bonds, no alternatives) is shown as unavailable with the reason. No exhibit shows performance.
