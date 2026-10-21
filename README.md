@@ -32,3 +32,6 @@ Static site: `index.html` only. Deployed on Vercel.
 
 ## Guided demo
 "Guided demo" (top right) runs an 8-step walkthrough over the app: today's screen → Personalize → profile-set tilts → base vs. personalized → a client preference → a one-way input → What changed and the risk check → a 100% bond model. Each step sets the app to a known state, so Back/Next are always consistent. Keys: ← → to step, Esc to exit. Open with `#demo` to start it automatically.
+
+## Branding
+The feature is branded **[MyWay]**: set in the screen's own type, with UBS-style brackets (as in "UBS Manage Advanced [My Way]"). No new colors, icon or gradient. It appears on the Personalize button, the personalization screen title, the personalized tile's tag, the Apply confirmation, and the demo's closing card. The CIO base tile, What changed and the sliders stay unbranded so they read as CIO governance.

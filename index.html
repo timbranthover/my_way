@@ -303,6 +303,19 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 @keyframes dlpress{0%{transform:scale(1)}40%{transform:scale(.96);box-shadow:0 0 0 6px rgba(255,181,71,.35)}100%{transform:scale(1)}}
 @media (max-width:860px){.dl-card{left:16px!important;right:16px;width:auto;top:auto!important;bottom:calc(16px + env(safe-area-inset-bottom,0px))}}
 @media (prefers-reduced-motion:reduce){.dl-spot,.dl-card{transition:none}.dl-spot::after,.dl-launch .pl::after{animation:none}.dl-card.in .dl-body{animation:none}}
+
+/* [MyWay] wordmark: set in the screen's own type; UBS-style brackets frame the name */
+.mw{display:inline-flex;align-items:baseline;white-space:nowrap;font-weight:700;letter-spacing:0;text-transform:none}
+.mw .b{font-weight:400;color:var(--faint);padding:0 .06em}
+.stage h2 .mw{font-weight:700}
+.ttl-sep{display:inline-block;width:1px;height:.8em;background:var(--line);margin:0 12px;vertical-align:-1px}
+.ttag.pz > span{text-transform:none;letter-spacing:.2px;font-size:11.5px;padding:2px 8px 0;line-height:1.35}
+.ttag.pz .mw .b{color:#9aa1ab}
+.ttag .mw{text-transform:none;letter-spacing:.2px;padding:0;border:0;background:none;font-size:inherit;border-radius:0;color:inherit}
+.ttag .mw span{padding:0 .06em;border:0;background:none;font-size:inherit;letter-spacing:0;text-transform:none;border-radius:0}
+.tlink .tmw{display:inline-flex;align-items:center;padding-left:10px;margin-left:2px;border-left:1px solid rgba(255,255,255,.22);font-size:13px;letter-spacing:.2px}
+.tlink .tmw .mw .b{color:#9aa1ab}
+.dmw span{color:var(--d-acc);font-weight:500;padding:0 .04em}
 </style>
 
 <div class="modal">
@@ -503,6 +516,7 @@ const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;");
 const X = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg>';
 const CHEV = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10l5-5 5 5"/></svg>';
 const TICK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+const MW = '<span class="mw" aria-label="MyWay"><span class="b">[</span>MyWay<span class="b">]</span></span>';
 const REC = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="7" r="1.6"/><path d="M3.8 11c.4-1.2 1.2-1.8 2.2-1.8s1.8.6 2.2 1.8M9.5 6.5h3M9.5 9h2"/></svg>';
 
 // ---------- Donut (SVG, counter-clockwise from 3 o'clock, tweened)
@@ -551,7 +565,7 @@ function modelTile(m, opts={}){
     ${opts.tag?`<div class="ttag"><span>${opts.tag}</span></div>`:""}<div class="tkind">${kind}</div><div class="tname">${esc(m.n)}</div>
     <div class="donut" data-donut="cio-${m.id}"></div>
     ${legend(m.w)}
-    ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg>${m.id===S.base&&S.started?"Edit personalization":"Personalize"}</button>`:""}
+    ${opts.personalize?`<div class="tspacer"></div><button class="tlink" data-pz="${m.id}"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.6"/><circle cx="5.5" cy="11.5" r="1.6"/></svg><span>${m.id===S.base&&S.started?"Edit personalization":"Personalize"}</span><span class="tmw">${MW}</span></button>`:""}
   </div>`;
 }
 
@@ -663,7 +677,7 @@ function changeTile(base, res){
 function render(){
   const pz = S.method==="pz";
   $("#backBtn").hidden = !pz;
-  $("#stageTitle").textContent = pz ? "Personalize: CIO Model" : "Allocation Method: CIO Models";
+  $("#stageTitle").innerHTML = pz ? `${MW}<span class="ttl-sep"></span>Personalize CIO model` : "Allocation Method: CIO Models";
   $("#railBody").innerHTML = pz ? railPZ() : railCIO();
   if(pz) document.querySelectorAll("[data-sl]").forEach(el=>paintSlider(el, S.ans[el.dataset.sl]));
   renderStage();
@@ -686,7 +700,7 @@ function renderStage(){
     const status = !active.length ? "Matches CIO base" : [nP?`${nP} from profile`:"", nC?`${nC} client ${nC>1?"choices":"choice"}`:""].filter(Boolean).join(" · ");
     tiles.innerHTML = modelTile(m,{tag:"CIO base"}) + `
       <div class="tile pz">
-        <div class="ttag pz"><span>Personalized</span></div>
+        <div class="ttag pz"><span>${MW}</span></div>
         <div class="tkind">Personalized Allocation</div>
         <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${deadReason(q,m.w)?"na":active.includes(q)?"on "+(q.src==="profile"?"p":"c"):""}" title="${q.t}${deadReason(q,m.w)?": not in this model":""}"></i>`).join("")}</div><span>${status}</span></div>
         <div class="donut" data-donut="pz"></div>
@@ -712,7 +726,7 @@ document.addEventListener("click", e=>{
     const v=document.querySelector('input[name="setalloc"]:checked').value;
     if(S.method==="pz" && v==="cio"){
       const pzOn = personalize(M(S.base).w, S.ans).moves.length>0;
-      toast(pzOn?"Personalized CIO allocation set for this proposal":"CIO model allocation set for this proposal"); return;
+      toast(pzOn?"MyWay allocation set for this proposal":"CIO model allocation set for this proposal"); return;
     }
     toast(v==="prop"?"Proposed allocation set for this proposal":"CIO model allocation set for this proposal"); return; }
   if(t.id==="cancel"){ toast("No changes applied"); return; }
@@ -839,7 +853,7 @@ render();
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[q1(".tiles>.tile:nth-child(3)")] },
     { t:"Works on every model", x:"On a 100% bond model, the stock inputs simply drop away. Taxes still applies.",
       set:()=>pz("m5"), at:()=>[q1("#railBody")] },
-    { end:true, t:"MyWay personalization", list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
+    { end:true, t:'<span class="dmw"><span>[</span>MyWay<span>]</span></span> personalization', list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[] },
   ];
 
@@ -885,7 +899,7 @@ render();
     const n=STEPS.filter(s=>!s.end).length;
     q1("#dlStep").textContent = st.end ? "Demo complete" : `Step ${i+1} of ${n}`;
     $$("#dlProg i").forEach((el,k)=>el.classList.toggle("on", k<=i));
-    q1("#dlTitle").textContent = st.t;
+    q1("#dlTitle").innerHTML = st.t;
     q1("#dlText").innerHTML = st.list ? `<ul class="dl-list">${st.list.map(x=>`<li>${x}</li>`).join("")}</ul>` : `<p class="dl-text">${st.x}</p>`;
     card.classList.toggle("end", !!st.end);
     q1("#dlBack").disabled = i===0;
