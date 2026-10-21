@@ -128,7 +128,9 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
 @media (max-width:1180px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:620px){.tiles{grid-template-columns:minmax(0,1fr)}}
-.tile{background:var(--tile);border:1px solid var(--tile-line);box-shadow:0 1px 3px rgba(30,35,45,.06);padding:16px 18px 18px;position:relative;min-width:0;display:flex;flex-direction:column}
+.tiles{position:relative}
+.tile{background:var(--tile);border:1px solid var(--tile-line);box-shadow:0 1px 3px rgba(30,35,45,.06);padding:16px 18px 18px;position:relative;min-width:0;display:flex;flex-direction:column;min-height:var(--tile-min,0px)}
+.tprobe{position:absolute;left:0;top:0;visibility:hidden;pointer-events:none;--tile-min:0px}
 /* Personalized tile: faint cool tint, a brushed-metal border with a slow sheen, and a soft lift */
 .tile.pz{
   border:1.5px solid transparent;
@@ -838,6 +840,43 @@ function changeTile(base, res){
   </div>`;
 }
 
+function pzTile(m, res, active, status, changed){
+  return `<div class="tile pz">
+        <div class="ttag pz"><span>${MW}</span></div>
+        <div class="tkind">Personalized Allocation</div>
+        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${deadReason(q,m.w)?"na":active.includes(q)?"on "+(q.src==="profile"?"p":"c"):""}" title="${q.t}${deadReason(q,m.w)?": not in this model":""}"></i>`).join("")}</div><span>${status}</span></div>
+        <div class="donut" data-donut="pz"></div>
+        ${legend(res.w, m.w, pzRows(m.w), changed)}
+      </div>`;
+}
+
+// Every tile is the same height whatever model it shows: measure the tallest tile any model can produce
+// (CIO tile, personalized tile, What changed) at the current column width, and use that as the minimum for all.
+let tileMinKey = "";
+function syncTileHeight(){
+  const tiles = $("#tiles"); if(!tiles || !tiles.clientWidth) return;
+  const cs = getComputedStyle(tiles), cols = cs.gridTemplateColumns.split(" ").filter(Boolean).length || 1;
+  const gap = parseFloat(cs.columnGap)||0, colW = (tiles.clientWidth - gap*(cols-1))/cols;
+  const key = colW.toFixed(1);
+  if(key===tileMinKey) return; tileMinKey = key;
+  const probe = document.createElement("div"); probe.className="tprobe"; probe.style.width=colW+"px";
+  const html = [];
+  for(const m of MODELS){
+    const r0 = personalize(m.w, {tax:0,alt:0,geo:0,inc:0}), r1 = personalize(m.w, {tax:2,alt:2,geo:2,inc:2});
+    html.push(modelTile(m,{close:true, personalize:true}), modelTile(m,{tag:"CIO base"}),
+      pzTile(m, r0, [], "Matches CIO base"), pzTile(m, r1, QS, "2 from profile · 2 client choices"),
+      changeTile(m.w, r0), changeTile(m.w, r1));
+  }
+  probe.innerHTML = html.join("");
+  probe.querySelectorAll(".donut").forEach(d=>d.innerHTML=donutSVG(MODELS[0].w));
+  tiles.appendChild(probe);
+  let h = 0; probe.querySelectorAll(":scope>.tile").forEach(t=>{ h = Math.max(h, t.getBoundingClientRect().height); });
+  probe.remove();
+  tiles.style.setProperty("--tile-min", Math.ceil(h)+"px");
+}
+addEventListener("resize", ()=>syncTileHeight());
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ tileMinKey=""; syncTileHeight(); });
+
 // ---------- Render
 function render(){
   const pz = S.method==="pz";
@@ -849,6 +888,7 @@ function render(){
   renderStage();
 }
 function renderStage(){
+  syncTileHeight();
   const pz = S.method==="pz";
   const tiles = $("#tiles");
   if(!pz){
@@ -864,14 +904,7 @@ function renderStage(){
     const active = QS.filter(q=>res.moves.some(mv=>mv.q.k===q.k));
     const nP = active.filter(q=>q.src==="profile").length, nC = active.length-nP;
     const status = !active.length ? "Matches CIO base" : [nP?`${nP} from profile`:"", nC?`${nC} client ${nC>1?"choices":"choice"}`:""].filter(Boolean).join(" · ");
-    tiles.innerHTML = modelTile(m,{tag:"CIO base"}) + `
-      <div class="tile pz">
-        <div class="ttag pz"><span>${MW}</span></div>
-        <div class="tkind">Personalized Allocation</div>
-        <div class="tstat"><div class="dots">${QS.map(q=>`<i class="${deadReason(q,m.w)?"na":active.includes(q)?"on "+(q.src==="profile"?"p":"c"):""}" title="${q.t}${deadReason(q,m.w)?": not in this model":""}"></i>`).join("")}</div><span>${status}</span></div>
-        <div class="donut" data-donut="pz"></div>
-        ${legend(res.w, m.w, pzRows(m.w), changed)}
-      </div>` + changeTile(m.w, res);
+    tiles.innerHTML = modelTile(m,{tag:"CIO base"}) + pzTile(m, res, active, status, changed) + changeTile(m.w, res);
     drawDonut(tiles.querySelector(`[data-donut="cio-${m.id}"]`), "cio-"+m.id, m.w);
     drawDonut(tiles.querySelector(`[data-donut="pz"]`), "pz", res.w);
   }
