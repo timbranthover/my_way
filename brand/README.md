@@ -1,0 +1,1 @@
+Place the official UBS logo here as `ubs-logo.svg` (preferred) or `ubs-logo.png`, taken from the UBS brand portal. The proposal PDF header picks it up automatically; without it, the header shows "UBS" as text.

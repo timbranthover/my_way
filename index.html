@@ -262,13 +262,13 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .dl-block{position:absolute;inset:0;background:transparent;transition:background .35s ease}
 .dl-root.nospot .dl-block{background:var(--d-scrim)}
 .dl-spot{position:fixed;border-radius:8px;pointer-events:none;box-shadow:0 0 0 9999px var(--d-scrim);
-  transition:top .5s cubic-bezier(.2,.8,.2,1),left .5s cubic-bezier(.2,.8,.2,1),width .5s cubic-bezier(.2,.8,.2,1),height .5s cubic-bezier(.2,.8,.2,1),opacity .3s ease}
+  transition:top .42s cubic-bezier(.2,.8,.2,1),left .42s cubic-bezier(.2,.8,.2,1),width .42s cubic-bezier(.2,.8,.2,1),height .42s cubic-bezier(.2,.8,.2,1),opacity .3s ease}
 .dl-spot::after{content:"";position:absolute;inset:-2px;border-radius:10px;border:2px solid var(--d-acc);animation:dlglow 2.2s ease-in-out infinite}
 @keyframes dlglow{0%,100%{box-shadow:0 0 0 0 rgba(255,181,71,.0)}50%{box-shadow:0 0 0 6px rgba(255,181,71,.18)}}
 .dl-root.nospot .dl-spot{opacity:0}
 .dl-card{position:fixed;width:344px;max-width:calc(100vw - 32px);background:var(--d-bg);color:var(--d-fg);border-radius:12px;padding:18px 20px 16px;
   box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.06) inset;
-  transition:top .5s cubic-bezier(.2,.8,.2,1),left .5s cubic-bezier(.2,.8,.2,1)}
+  transition:top .34s cubic-bezier(.2,.8,.2,1),left .34s cubic-bezier(.2,.8,.2,1)}
 .dl-card.in .dl-body{animation:dlin .42s cubic-bezier(.2,.8,.2,1) both}
 @keyframes dlin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .dl-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -336,7 +336,7 @@ button,select,input{font-family:inherit;font-size:inherit;color:inherit}
 .pv-a{display:flex;gap:10px}
 .pv-scroll{flex:1;overflow:auto;padding:28px 24px 48px}
 .pv-pages{display:flex;flex-direction:column;align-items:center;gap:22px;width:max-content;margin:0 auto}
-.pv.demo .pv-pages{margin:0 0 0 8px}
+.pv.demo{animation:none}
 html.pv-open,html.pv-open body{overflow:hidden}
 
 /* Page */
@@ -345,6 +345,7 @@ html.pv-open,html.pv-open body{overflow:hidden}
 .ph{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:2px solid #1d1f22;margin-bottom:18px}
 .ph-l{display:flex;align-items:center;gap:12px}
 .ubs-w{font-weight:700;font-size:19pt;letter-spacing:.06em;line-height:1}
+.ubs-logo{height:28px;width:auto;display:block}
 .ph-div{width:1px;height:20px;background:#c4c8cf}
 .ph-u{font-size:10pt;color:#5b5f66}
 .ph-r{display:flex;align-items:center;gap:10px;font-size:8.5pt;color:#5b5f66}
@@ -428,7 +429,6 @@ html.pv-open,html.pv-open body{overflow:hidden}
   <div class="mhead">
     <h1>Allocation Models</h1>
     <div class="mhead-r"><button class="dl-launch" id="dlLaunch" aria-label="Start guided demo"><span class="pl"><svg viewBox="0 0 10 10"><path d="M1 0.8L9 5 1 9.2Z" fill="#1A1405"/></svg></span>Guided demo</button>
-    <button class="xbtn" aria-label="Close"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l12 12M16 4L4 16"/></svg></button>
     </div>
   </div>
   <div class="subrule"></div>
@@ -830,6 +830,10 @@ function renderStage(){
 
 
 // ---------- Proposal document (what the advisor takes to the client). Letter pages, printed to PDF as vector text.
+// Official UBS logo: place the brand-portal file at brand/ubs-logo.svg (or .png). Until then the header uses "UBS" text.
+let UBS_LOGO = null;
+(function findLogo(){ const tryIt = (src, nextSrc) => { const im=new Image(); im.onload=()=>{ UBS_LOGO=src; if(!$("#pv").hidden) $("#pvPages").innerHTML=buildProposal(); };
+  im.onerror=()=>{ if(nextSrc) tryIt(nextSrc, null); }; im.src=src; }; tryIt("brand/ubs-logo.svg","brand/ubs-logo.png"); })();
 const longDate = () => new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
 function reasonFor(mv, base, c){
   const q=mv.q, n=mv.n, adj = q.src==="profile" && isAdj(q.k);
@@ -863,7 +867,7 @@ function buildProposal(){
   const vb=vol(base), vp=vol(w), t=te(w,base), ok = t<=TE_LIMIT && Math.abs(vp-vb)<=VOL_LIMIT;
   const rows = AC.map((a,i)=>({a,i,b:base[i],p:w[i]})).filter(r=>r.b>0||r.p>0);
   const N=3, date=longDate();
-  const head = `<div class="ph"><div class="ph-l"><span class="ubs-w">UBS</span><span class="ph-div"></span><span class="ph-u">Wealth Management</span></div>
+  const head = `<div class="ph"><div class="ph-l">${UBS_LOGO?`<img class="ubs-logo" src="${UBS_LOGO}" alt="UBS">`:`<span class="ubs-w">UBS</span>`}<span class="ph-div"></span><span class="ph-u">Wealth Management</span></div>
       <div class="ph-r"><span class="ph-s">Sample</span><span>Allocation proposal · ${date}</span></div></div>`;
   const foot = k => `<div class="pf"><span>UBS Financial Services Inc. · Sample proposal for demonstration only. Not for client use.</span><span>Page ${k} of ${N}</span></div>`;
   const donut = (wt,label,sub,mw) => `<div class="pd"><div class="pd-l">${mw?MW:`<span class="pd-cio">CIO model</span>`}</div><div class="pd-t">${label}</div><div class="pd-s">${sub}</div><div class="pd-c">${donutSVG(wt)}</div></div>`;
@@ -919,7 +923,7 @@ function buildProposal(){
 }
 function fitPreview(){
   const pv=$("#pv"); if(pv.hidden) return;
-  const pad = pv.classList.contains("demo") ? 420 : 48;
+  const pad = pv.classList.contains("demo") ? 2*(344+52) : 48;   // demo: leave room for the step card on each side
   const z = Math.min(1, (innerWidth - pad) / 816);
   $("#pvPages").style.zoom = Math.max(.35, z);
 }
@@ -1080,7 +1084,7 @@ render();
     { t:"Every change traced", x:"Each tilt is tagged by source and checked against CIO's risk guardrail before it can be applied.",
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[q1(".tiles>.tile:nth-child(3)")] },
     { t:"Ready for the client", x:"One click turns it into a clean proposal: before and after, the reason for each change, the risk check and disclosures. <b>Download PDF</b> and it's ready to share.",
-      set:()=>{ pz("m6",{geo:1,inc:2}); openPreview(); q1("#pv").classList.add("demo"); fitPreview(); }, at:()=>[q1("#pvPages .pg")] },
+      set:()=>{ pz("m6",{geo:1,inc:2}); q1("#pv").classList.add("demo"); openPreview(); }, at:()=>[q1("#pvPages .pg")] },
     { t:"Works on every model", x:"On a 100% bond model, the stock inputs simply drop away. Taxes still applies.",
       set:()=>pz("m5"), at:()=>[q1("#railBody")] },
     { end:true, t:'<span class="mw dmw">MyWay'+MW_ICON+'</span> personalization', list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
@@ -1148,15 +1152,20 @@ render();
     spot.style.transition="none"; go(0); place(); void spot.offsetWidth; spot.style.transition="";
     q1("#dlNext").focus({preventScroll:true});
   }
-  function stop(){ tok++; q1("#pv").classList.remove("demo"); fitPreview(); root.hidden=true; launch.style.visibility=''; cancelAnimationFrame(loop); cur=-1;
+  function stop(){ if(pending){ clearTimeout(pending); pending=0; } tok++; q1("#pv").classList.remove("demo"); fitPreview(); root.hidden=true; launch.style.visibility=''; cancelAnimationFrame(loop); cur=-1;
     $$(".dl-press").forEach(e=>e.classList.remove("dl-press")); }
+  let pending=0;
   function next(){
+    if(pending) return;                              // a step change is already on its way
     const st=STEPS[cur]; if(!st) return;
     if(st.end){ stop(); return; }
-    const wait = st.next ? st.next() : 0;
-    setTimeout(()=>go(cur+1), wait||0);
+    const target=cur+1, wait = st.next ? st.next() : 0;
+    if(wait){ pending=setTimeout(()=>{ pending=0; go(target); }, wait); } else go(target);
   }
-  function back(){ const st=STEPS[cur]; if(st && st.end){ go(0); return; } if(cur>0) go(cur-1); }
+  function back(){
+    if(pending){ clearTimeout(pending); pending=0; $$(".dl-press").forEach(e=>e.classList.remove("dl-press")); }
+    const st=STEPS[cur]; if(st && st.end){ go(0); return; } if(cur>0) go(cur-1);
+  }
 
   launch.addEventListener("click", start);
   q1("#dlNext").addEventListener("click", next);
@@ -1164,6 +1173,7 @@ render();
   q1("#dlX").addEventListener("click", stop);
   addEventListener("keydown", e=>{
     if(root.hidden) return;
+    if(e.repeat && e.key!=="Escape"){ e.preventDefault(); e.stopPropagation(); return; }
     if(e.key==="Escape"){ e.preventDefault(); stop(); }
     else if(e.key==="ArrowRight"){ e.preventDefault(); e.stopPropagation(); next(); }
     else if(e.key==="ArrowLeft"){ e.preventDefault(); e.stopPropagation(); back(); }
