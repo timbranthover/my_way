@@ -446,10 +446,6 @@ html.pv-open,html.pv-open body{overflow:hidden}
 .ex.dis .ex-row{cursor:not-allowed}
 .ex.dis .ex-t b{color:var(--faint)} .ex.dis .ex-t i{color:var(--faint)}
 .ex.dis .tg{background:#e6e8ec}
-.ex-note{padding:0 0 14px 44px;display:flex;flex-direction:column;gap:4px}
-.ex-note textarea{width:100%;resize:vertical;border:1px solid var(--rule);border-radius:2px;padding:8px 10px;font:inherit;font-size:13.5px;line-height:1.45;color:var(--fg);background:var(--bg)}
-.ex-cnt{align-self:flex-end;font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums}
-
 /* Exhibit pages */
 .pg>.pbody{flex:1 1 0;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:26px}
 .xs .p-h2{margin-bottom:4px}
@@ -461,12 +457,15 @@ html.pv-open,html.pv-open body{overflow:hidden}
 .xleg{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0 0 12px 1.37in;font-size:8.5pt;color:#3c4046}
 .xleg span{display:inline-flex;align-items:center;gap:6px}.xleg i{width:9px;height:9px;display:inline-block}
 .xt{margin-bottom:8px}
-.xnote{margin:6px 0 0;padding:4px 0 4px 16px;border-left:3px solid #0E7A57;font-size:11pt;line-height:1.55;color:#1d1f22}
-.xnote cite{display:block;margin-top:8px;font-style:normal;font-size:8.5pt;color:#5b5f66;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .xgl{columns:2;column-gap:.32in;margin:8px 0 0}
 .xgl div{break-inside:avoid;margin-bottom:10px}
 .xgl dt{font-size:9pt;font-weight:700}.xgl dd{margin:1px 0 0;font-size:8.5pt;color:#3c4046;line-height:1.4}
 @media print{ .pv-side{display:none!important} .pv-body{display:block} }
+
+.xk{font-size:10.5pt;line-height:1.5;color:#1d1f22;margin:2px 0 8px;max-width:6.7in}
+.xd{display:flex;flex-wrap:wrap;gap:6px 14px;margin:0 0 6px}
+.xd-i{display:inline-flex;align-items:baseline;gap:7px}
+.xd-i b{font-size:8.5pt;text-transform:uppercase;letter-spacing:.4px}
 </style>
 
 <div class="modal">
@@ -527,7 +526,7 @@ html.pv-open,html.pv-open body{overflow:hidden}
   </div>
   <div class="pv-body">
     <aside class="pv-side" id="pvSide" aria-label="Exhibits">
-      <div class="ps-h"><b>Exhibits</b><span>Add pages to this proposal. Core pages and disclosures are always included.</span></div>
+      <div class="ps-h"><b>Exhibits</b><span>Supporting pages that explain this allocation. They follow the choices on screen and print after the summary pages, before the disclosures.</span></div>
       <div class="ps-list"></div>
     </aside>
     <div class="pv-scroll"><div class="pv-pages" id="pvPages"></div></div>
@@ -664,7 +663,7 @@ const AT_END = {muni:"no munis held", corp:"no corporates held", ei:"total retur
 
 // ---------- State
 const S = { method:"cio", picked:["m1","m2","m6"], open:{saa:true,uhnw:true,inst:true}, base:"m6",
-            ans:{tax:0,alt:0,geo:0,inc:0}, der:{tax:0,alt:0}, exh:{}, note:"" };
+            ans:{tax:0,alt:0,geo:0,inc:0}, der:{tax:0,alt:0}, exh:{} };
 const prev = {}; // last drawn weights per donut, for tweening
 const isAdj = k => S.ans[k]!==S.der[k];
 function startFrom(baseId){
@@ -982,7 +981,6 @@ const GROUPS_AC = [
 ];
 const sumK = (w,ks) => ks.reduce((t,k)=>t+w[IDX[k]],0);
 const EXHIBITS = [
-  {k:"note", t:"Note from your advisor", d:"A short personal message on the first exhibit page."},
   {k:"mix",  t:"Mix at a glance", d:"Cash, bonds, stocks and alternatives, before and after."},
   {k:"geo",  t:"Where your stocks are invested", d:"US vs. international and by size, as a share of stocks."},
   {k:"tax",  t:"Tax-exempt income", d:"Municipal share of bonds and the tax-equivalent value at the client's bracket."},
@@ -1001,50 +999,82 @@ function xbars(rows){   // rows: [{label, parts:[{v,c,n}]}] stacked 100% bars
 }
 function xlegend(items){ return `<div class="xleg">${items.map(i=>`<span><i style="background:${i.c}"></i>${i.n}</span>`).join("")}</div>`; }
 function exhibitBlocks(){
-  const m=M(S.base), base=m.w, w=personalize(base,S.ans).w, c=CLIENT, out=[];
+  const m=M(S.base), base=m.w, res=personalize(base,S.ans), w=res.w, c=CLIENT, out=[];
+  const mv = k => res.moves.find(x=>x.q.k===k);
+  const src = k => { const q=QK(k); return q.src==="client" ? "Your preference" : isAdj(k) ? "Adjusted by your advisor" : "From your profile"; };
+  const drivers = ks => { const on=ks.filter(k=>mv(k)); return on.length ? `<div class="xd">${on.map(k=>`<span class="xd-i"><b>${QK(k).t}</b><span class="ps">${src(k)}</span></span>`).join("")}</div>` : `<div class="xd"><span class="xd-i"><b>No adjustment</b><span class="ps">Matches the CIO model</span></span></div>`; };
+  const key = t => `<p class="xk">${t}</p>`;
   const delta = d => `<td class="${d>0?"up":d<0?"dn":"z"}">${Math.abs(d)<1e-9?"—":sgn(Math.round(d*10)/10)}</td>`;
+  const altWhy = () => { const e=eligibility(c), n=S.ans.alt;
+    if(isAdj("alt")) return "your advisor adjusted the alternatives setting";
+    if(e==="Not accredited") return "hedge funds require accredited investor status";
+    return n===1 ? `your net worth of ${money(c.netWorth)} sizes alternatives at half the CIO weight` : "alternatives are removed"; };
   for(const ex of EXHIBITS){
     if(!S.exh[ex.k] || exReason(ex.k, base)) continue;
-    if(ex.k==="note"){
-      const txt=(S.note||"").trim(); if(!txt) continue;
-      out.push(`<div class="xs" data-xk="note"><h2 class="p-h2">A note from your advisor</h2><blockquote class="xnote">${esc(txt).replace(/\n/g,"<br>")}<cite>Your UBS Financial Advisor</cite></blockquote></div>`);
-    }
     if(ex.k==="mix"){
       const g=GROUPS_AC.map(G=>({...G, b:sumK(base,G.k), p:sumK(w,G.k)})).filter(G=>G.b>0||G.p>0);
-      const moved = g.some(G=>Math.abs(G.p-G.b)>1e-9);
-      out.push(`<div class="xs" data-xk="mix"><h2 class="p-h2">Mix at a glance</h2><p class="p-sub">How the allocation splits across the broad asset groups.</p>
+      const hf=g.find(G=>G.n==="Alternatives"), moved = g.some(G=>Math.abs(G.p-G.b)>1e-9);
+      const list = g.filter(G=>G.p>0).sort((a,b)=>b.p-a.p).map(G=>`${fmt(G.p)} ${G.n.toLowerCase()}`);
+      const mixLine = list.length>1 ? list.slice(0,-1).join(", ")+" and "+list[list.length-1] : list[0];
+      out.push(`<div class="xs" data-xk="mix"><h2 class="p-h2">Mix at a glance</h2>
+        ${key(`Your allocation is ${mixLine}. ${moved&&hf?`Alternatives go from ${fmt(hf.b)} to ${fmt(hf.p)} because ${altWhy()}; that weight moves to the other groups in CIO model proportions.`:"Every adjustment stays inside its asset group, so the broad mix matches the CIO model."}`)}
+        ${drivers(["alt"])}
         ${xbars([{label:"CIO model",parts:g.map(G=>({v:G.b,c:G.c}))},{label:"Your allocation",parts:g.map(G=>({v:G.p,c:G.c}))}])}${xlegend(g)}
         <table class="p-tab xt"><thead><tr><th>Asset group</th><th>CIO model</th><th>Your allocation</th><th>Change</th></tr></thead><tbody>
         ${g.map(G=>`<tr><td><span class="tc"><span class="sw" style="background:${G.c}"></span>${G.n}</span></td><td>${fmt(G.b)}</td><td>${fmt(G.p)}</td>${delta(G.p-G.b)}</tr>`).join("")}</tbody></table>
-        <p class="p-note">${moved?"Only the alternatives setting moves weight between groups: hedge fund weight is spread across the rest of the portfolio in CIO model proportions. Every other adjustment stays within its group.":"Your broad mix is unchanged. Every adjustment stays within its group, so the overall balance of the portfolio matches the CIO model."}</p></div>`);
+        <p class="p-note">The broad mix comes from the CIO model for your risk profile. Taxes, Geography and Income only move weight within a group.</p></div>`);
     }
     if(ex.k==="geo"){
       const Eb=sumK(base,GROUPS_AC[2].k), Ew=sumK(w,GROUPS_AC[2].k), sh=(v,E)=>E?v/E*100:0;
-      const usB=sh(sumK(base,["lc","ei","mc","sc"]),Eb), usW=sh(sumK(w,["lc","ei","mc","sc"]),Ew);
+      const intB=sh(base[IDX.dm],Eb), intW=sh(w[IDX.dm],Ew), eiW=sh(w[IDX.ei],Ew);
+      const g=mv("geo"), inc=mv("inc");
+      let t = g ? `International stocks make up ${pc1(intW)} of your stocks, ${intW>intB?"up":"down"} from ${pc1(intB)}, because you prefer ${g.n>0?"more global exposure":"to stay closer to home"}.`
+                : `Your split between US and international stocks matches the CIO model (${pc1(intW)} international).`;
+      if(inc) t += ` Equity income makes up ${pc1(eiW)} of your stocks because you prefer more dividend income.`;
       const parts=[["lc","Large cap"],["ei","Equity income"],["mc","Mid cap"],["sc","Small cap"],["dm","Developed international"]].filter(([k])=>base[IDX[k]]>0||w[IDX[k]]>0);
-      out.push(`<div class="xs" data-xk="geo"><h2 class="p-h2">Where your stocks are invested</h2><p class="p-sub">Shares of the stock portion only, so the two columns each add to 100%.</p>
-        ${xbars([{label:"CIO model",parts:[{v:usB,c:"#2f6d9e"},{v:100-usB,c:"#819ee3"}]},{label:"Your allocation",parts:[{v:usW,c:"#2f6d9e"},{v:100-usW,c:"#819ee3"}]}])}${xlegend([{n:"United States",c:"#2f6d9e"},{n:"Developed international",c:"#819ee3"}])}
-        <table class="p-tab xt"><thead><tr><th>Within stocks</th><th>CIO model</th><th>Your allocation</th><th>Change</th></tr></thead><tbody>
-        ${parts.map(([k,n])=>{const b=sh(base[IDX[k]],Eb), p=sh(w[IDX[k]],Ew); return `<tr><td><span class="tc"><span class="sw" style="background:${AC[IDX[k]].c}"></span>${n}</span></td><td>${pc1(b)}</td><td>${pc1(p)}</td>${delta(p-b)}</tr>`;}).join("")}</tbody></table></div>`);
+      out.push(`<div class="xs" data-xk="geo"><h2 class="p-h2">Where your stocks are invested</h2>
+        ${key(t)}${drivers(["geo","inc"])}
+        ${xbars([{label:"CIO model",parts:[{v:100-intB,c:"#2f6d9e"},{v:intB,c:"#819ee3"}]},{label:"Your allocation",parts:[{v:100-intW,c:"#2f6d9e"},{v:intW,c:"#819ee3"}]}])}${xlegend([{n:"United States",c:"#2f6d9e"},{n:"Developed international",c:"#819ee3"}])}
+        <table class="p-tab xt"><thead><tr><th>Share of stocks</th><th>CIO model</th><th>Your allocation</th><th>Change</th></tr></thead><tbody>
+        ${parts.map(([k,n])=>{const b=sh(base[IDX[k]],Eb), p=sh(w[IDX[k]],Ew); return `<tr><td><span class="tc"><span class="sw" style="background:${AC[IDX[k]].c}"></span>${n}</span></td><td>${pc1(b)}</td><td>${pc1(p)}</td>${delta(p-b)}</tr>`;}).join("")}</tbody></table>
+        <p class="p-note">Shares of the stock portion only (${fmt(Ew)} of your allocation), so each column adds to 100%.</p></div>`);
     }
     if(ex.k==="tax"){
       const Bb=sumK(base,GROUPS_AC[1].k), Bw=sumK(w,GROUPS_AC[1].k);
-      const mb=Bb?base[IDX.muni]/Bb*100:0, mw=Bw?w[IDX.muni]/Bw*100:0, f=1/(1-c.bracket/100);
-      out.push(`<div class="xs" data-xk="tax"><h2 class="p-h2">Tax-exempt income</h2><p class="p-sub">Municipal bond interest is generally exempt from federal income tax. Its value to you depends on your bracket.</p>
+      const mb=Bb?base[IDX.muni]/Bb*100:0, mw=Bw?w[IDX.muni]/Bw*100:0, f=1/(1-c.bracket/100), tx=mv("tax");
+      const t = tx ? (tx.n>0 ? `Municipal bonds make up ${pc1(mw)} of your bonds, up from ${pc1(mb)}, because your ${c.bracket}% federal bracket makes tax-exempt income more valuable.`
+                             : `Municipal bonds make up ${pc1(mw)} of your bonds, down from ${pc1(mb)}, because taxable bonds offer more after-tax value in your situation.`)
+                   : `Your bonds keep the CIO model's tax mix: ${pc1(mw)} in municipal bonds.`;
+      out.push(`<div class="xs" data-xk="tax"><h2 class="p-h2">Tax-exempt income</h2>
+        ${key(t+` At your bracket, each 1.00% of federally tax-exempt income is worth about ${f.toFixed(2)}% of taxable income.`)}${drivers(["tax"])}
         <div class="p-risk"><div><span>Bonds in municipals</span><b>${pc1(mb)} <i>→</i> ${pc1(mw)}</b><em>CIO model → your allocation</em></div>
-        <div><span>Federal tax bracket</span><b>${c.bracket}%</b><em>From your client profile</em></div>
-        <div><span>Tax-equivalent value</span><b>${f.toFixed(2)}×</b><em>Each 1.00% tax-exempt ≈ ${f.toFixed(2)}% taxable</em></div></div>
-        <p class="p-note">Tax-equivalent value = 1 ÷ (1 − federal bracket). It ignores state and local taxes and the alternative minimum tax, which can change the result. This is not tax advice.</p></div>`);
+        <div><span>Federal tax bracket</span><b>${c.bracket}%</b><em>${c.account} · ${c.accountType.toLowerCase()}</em></div>
+        <div><span>Tax-equivalent value</span><b>${f.toFixed(2)}×</b><em>1 ÷ (1 − ${c.bracket}%)</em></div></div>
+        <p class="p-note">Ignores state and local taxes and the alternative minimum tax, which can change the result. This is not tax advice.</p></div>`);
     }
     if(ex.k==="liq"){
-      const hb=base[IDX.hf], hw=w[IDX.hf];
-      out.push(`<div class="xs" data-xk="liq"><h2 class="p-h2">Liquidity</h2><p class="p-sub">How much of the portfolio sits in investments that can take longer to sell.</p>
+      const hb=base[IDX.hf], hw=w[IDX.hf], a=mv("alt");
+      const t = a ? `Limited-liquidity holdings go from ${fmt(hb)} to ${fmt(hw)} of your portfolio because ${altWhy()}. ${fmt(100-hw)} is in investments generally tradable on any business day.`
+                  : `${fmt(hb)} of your portfolio is in hedge funds, as in the CIO model. They can take longer to sell; the other ${fmt(100-hb)} is generally tradable on any business day.`;
+      out.push(`<div class="xs" data-xk="liq"><h2 class="p-h2">Liquidity</h2>
+        ${key(t)}${drivers(["alt"])}
         ${xbars([{label:"CIO model",parts:[{v:100-hb,c:"#9aa1ab"},{v:hb,c:"#3f3422"}]},{label:"Your allocation",parts:[{v:100-hw,c:"#9aa1ab"},{v:hw,c:"#3f3422"}]}])}${xlegend([{n:"Generally tradable daily",c:"#9aa1ab"},{n:"Limited liquidity (hedge funds)",c:"#3f3422"}])}
-        <p class="p-note">Hedge funds are often redeemable only monthly or quarterly, with notice periods, and may apply lock-ups or gates. Other holdings in this allocation are generally tradable on any business day.</p></div>`);
+        <p class="p-note">Hedge funds are often redeemable only monthly or quarterly, with notice periods, and may apply lock-ups or gates.</p></div>`);
     }
     if(ex.k==="gloss"){
-      const G=[["Chief Investment Office (CIO)","UBS's investment team that sets the model allocations this proposal starts from."],["Strategic asset allocation","A long-term mix of asset classes built for a given risk tolerance."],["Tracking difference","How differently your allocation is expected to behave from the CIO model in a typical year."],["Estimated volatility","How much the allocation's value is expected to move up and down in a typical year."],["Municipal bonds","Bonds issued by states and localities; interest is generally exempt from federal income tax."],["Hedge funds","Privately offered funds using a range of strategies; available only to eligible investors."],["Accredited investor / qualified purchaser","Eligibility standards, based mainly on wealth, for investing in private funds."],["Developed international markets","Stocks of companies in established economies outside the US, such as Europe and Japan."],["Equity income","Stocks selected for steady dividend payments."]];
-      out.push(`<div class="xs" data-xk="gloss"><h2 class="p-h2">Glossary</h2><dl class="xgl">${G.map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl></div>`);
+      const has = k => base[IDX[k]]>0 || w[IDX[k]]>0;
+      const G=[[true,"Chief Investment Office (CIO)","UBS's investment team that sets the model allocations this proposal starts from."],
+        [true,"Strategic asset allocation","A long-term mix of asset classes built for a given risk tolerance."],
+        [true,"Tracking difference","How differently your allocation is expected to behave from the CIO model in a typical year."],
+        [true,"Estimated volatility","How much the allocation's value is expected to move up and down in a typical year."],
+        [has("muni"),"Municipal bonds","Bonds issued by states and localities; interest is generally exempt from federal income tax."],
+        [has("tips"),"Treasury Inflation-Protected Securities","US Treasury bonds whose principal adjusts with inflation."],
+        [has("sec"),"Securitized bonds","Bonds backed by pools of loans, such as mortgages."],
+        [has("hf"),"Hedge funds","Privately offered funds using a range of strategies; available only to eligible investors."],
+        [has("hf"),"Accredited investor / qualified purchaser","Eligibility standards, based mainly on wealth, for investing in private funds."],
+        [has("dm"),"Developed international markets","Stocks of companies in established economies outside the US, such as Europe and Japan."],
+        [has("ei"),"Equity income","Stocks selected for steady dividend payments."]].filter(x=>x[0]);
+      out.push(`<div class="xs" data-xk="gloss"><h2 class="p-h2">Glossary</h2>${key("Terms used in this proposal.")}<dl class="xgl">${G.map(([_,a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join("")}</dl></div>`);
     }
   }
   return out;
@@ -1069,7 +1099,6 @@ function renderSide(){
     return `<div class="ex${why?" dis":""}${on?" on":""}">
       <label class="ex-row"><input type="checkbox" data-ex="${ex.k}" ${on?"checked":""} ${why?"disabled":""}><span class="tg" aria-hidden="true"></span>
       <span class="ex-t"><b>${ex.t}</b><i>${why||ex.d}</i></span></label>
-      ${ex.k==="note"&&on?`<div class="ex-note"><textarea id="pvNote" maxlength="600" rows="4" placeholder="Write a short note to the client…">${esc(S.note||"")}</textarea><span class="ex-cnt" id="pvCnt">${(S.note||"").length} / 600</span></div>`:""}
     </div>`;}).join("");
 }
 function fitPreview(){
@@ -1117,15 +1146,8 @@ document.addEventListener("click", e=>{
 document.addEventListener("change", e=>{
   const k=e.target.dataset && e.target.dataset.ex; if(!k) return;
   S.exh[k]=e.target.checked;
-  if(k==="note" && e.target.checked && !S.note) S.note="";
   renderSide(); refreshPages();
-  if(e.target.checked){ const el=document.querySelector(`#pvPages [data-xk="${k}"]`); if(el) el.scrollIntoView({behavior:"smooth",block:"center"}); else if(k==="note"){ const ta=$("#pvNote"); if(ta) ta.focus(); } }
-});
-let noteT=0;
-document.addEventListener("input", e=>{
-  if(e.target.id!=="pvNote") return;
-  S.note=e.target.value; $("#pvCnt").textContent=`${S.note.length} / 600`;
-  clearTimeout(noteT); noteT=setTimeout(refreshPages, 250);
+  if(e.target.checked){ const el=document.querySelector(`#pvPages [data-xk="${k}"]`); if(el) el.scrollIntoView({behavior:"smooth",block:"center"}); }
 });
 document.addEventListener("keydown", e=>{ const r=e.target.closest("[data-pick]"); if(r&&(e.key===" "||e.key==="Enter")){e.preventDefault(); r.click();} });
 
@@ -1245,15 +1267,15 @@ render();
       set:()=>pz("m6"), at:()=>[qBlock("geo")], run:my=>slide("geo",1,my) },
     { t:"Only real options", x:"Income can only lean one way: this model is <b>all total return</b> today. There's nothing past CIO to drag to.",
       set:()=>pz("m6",{geo:1}), at:()=>[qBlock("inc")], run:my=>slide("inc",2,my) },
-    { t:"Every change traced", x:"Each tilt is tagged by source and checked against CIO's risk guardrail before it can be applied.",
+    { t:"Works on every model", x:"On a 100% bond model, the stock inputs simply drop away. Taxes still applies.",
+      set:()=>pz("m5"), at:()=>[q1("#railBody")] },
+    { t:"Every change traced", x:"Back on our example: each tilt is tagged by its source and checked against CIO's risk guardrail before it can be applied.",
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[q1(".tiles>.tile:nth-child(3)")] },
     { t:"Ready for the client", x:"One click turns it into a clean proposal: before and after, the reason for each change, the risk check and disclosures. <b>Download PDF</b> and it's ready to share.",
       set:()=>{ pz("m6",{geo:1,inc:2}); q1("#pv").classList.add("demo"); openPreview(); }, at:()=>[q1("#pvPages .pg")] },
-    { t:"Tailor the proposal", x:"Add exhibits from the side panel: the broad mix, where the stocks are, tax-exempt value, liquidity, a note. Each one only appears when it applies to this allocation.",
+    { t:"Tailor the proposal", x:"Add exhibits from the side panel. Each one explains this allocation in plain terms (the broad mix, where the stocks are, tax-exempt value, liquidity) and only appears when it applies.",
       set:()=>{ pz("m6",{geo:1,inc:2}); S.exh={mix:true,tax:true}; openPreview(); }, at:()=>[q1("#pvSide")] },
-    { t:"Works on every model", x:"On a 100% bond model, the stock inputs simply drop away. Taxes still applies.",
-      set:()=>pz("m5"), at:()=>[q1("#railBody")] },
-    { end:true, t:'<span class="mw dmw">MyWay'+MW_ICON+'</span> personalization', list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails"],
+    { end:true, t:'<span class="mw dmw">MyWay'+MW_ICON+'</span> personalization', list:["Starts from the CIO model, never replaces it","Facts first, client preferences second","Every result on CIO's 0.5% grid and inside its guardrails","A client-ready proposal in one click"],
       set:()=>pz("m6",{geo:1,inc:2}), at:()=>[] },
   ];
 
