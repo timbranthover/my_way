@@ -830,10 +830,9 @@ function renderStage(){
 
 
 // ---------- Proposal document (what the advisor takes to the client). Letter pages, printed to PDF as vector text.
-// Official UBS logo: place the brand-portal file at brand/ubs-logo.svg (or .png). Until then the header uses "UBS" text.
-let UBS_LOGO = null;
-(function findLogo(){ const tryIt = (src, nextSrc) => { const im=new Image(); im.onload=()=>{ UBS_LOGO=src; if(!$("#pv").hidden) $("#pvPages").innerHTML=buildProposal(); };
-  im.onerror=()=>{ if(nextSrc) tryIt(nextSrc, null); }; im.src=src; }; tryIt("brand/ubs-logo.svg","brand/ubs-logo.png"); })();
+// Official UBS logo for the proposal header. Add the brand-portal file to /brand and set its path here,
+// e.g. "brand/ubs-logo.svg". While empty, the header shows "UBS" as text.
+const UBS_LOGO = "";
 const longDate = () => new Date().toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
 function reasonFor(mv, base, c){
   const q=mv.q, n=mv.n, adj = q.src==="profile" && isAdj(q.k);

@@ -1,1 +1,1 @@
-Place the official UBS logo here as `ubs-logo.svg` (preferred) or `ubs-logo.png`, taken from the UBS brand portal. The proposal PDF header picks it up automatically; without it, the header shows "UBS" as text.
+Place the official UBS logo here (e.g. `ubs-logo.svg`, from the UBS brand portal), then set `UBS_LOGO = "brand/ubs-logo.svg"` in index.html. The proposal PDF header uses it on every page; while unset, the header shows "UBS" as text.
